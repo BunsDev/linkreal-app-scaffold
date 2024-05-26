@@ -1,7 +1,9 @@
 import { useState } from "react";
 import clsx from "clsx";
+import { useAccount } from "wagmi";
 
 const ListingForm = () => {
+  const { address: connectedWalletAddress } = useAccount();
   const initialFormData = {
     address: "",
     price: "",
@@ -31,12 +33,13 @@ const ListingForm = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ formData, connectedWalletAddress }),
       });
+      console.log({ response });
       if (response.ok) {
-        console.log("Form data submitted successfully");
+        console.log("Form data submitted successfully", response);
       } else {
-        console.log("Failed to submit form data");
+        alert("Failed to submit form data");
       }
     } catch (error) {
       console.error("An error occurred while submitting form data:", error);
