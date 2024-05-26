@@ -1,6 +1,5 @@
 import { useState } from "react";
 import clsx from "clsx";
-import { set } from "nprogress";
 
 const ListingForm = () => {
   const initialFormData = {
@@ -65,7 +64,7 @@ const ListingForm = () => {
         </div>
         <div className="mb-4">
           <label htmlFor="price" className="block font-bold mb-2">
-            Price ( USD )
+            Total Value of the property ( USD )
           </label>
           <input
             type="number"
