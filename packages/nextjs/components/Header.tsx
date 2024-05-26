@@ -38,7 +38,7 @@ export const menuLinks: HeaderMenuLink[] = [
   },
   {
     label: "Provide Asset Guarantees",
-    href: "/asset-guarantees",
+    href: "/asset-gurantees",
   },
 ];
 

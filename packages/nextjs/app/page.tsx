@@ -45,7 +45,7 @@ const Home: NextPage = () => {
     {
       title: "Provide Asset Gurantees",
       description: "Click the button to provide asset guarantees.",
-      href: "/asset-guarantees",
+      href: "/asset-gurantees",
       action: "Provide",
     },
   ];
