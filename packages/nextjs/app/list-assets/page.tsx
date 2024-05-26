@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { NextPage } from "next";
 import RealEstateListing from "./real-estate-listing";
+import { NextPage } from "next";
 
 const MenuItems = ({ setSelectedOption }: any) => {
   const menuItems = [{ title: "Real Estate" }, { title: "Stocks" }, { title: "Fine Art" }, { title: "Carbon Credits" }];
@@ -14,7 +14,7 @@ const MenuItems = ({ setSelectedOption }: any) => {
           <li key={title}>
             <button
               className="btn btn-primary p-4 mb-6"
-              onClick={_ => setSelectedOption(title)}
+              onClick={() => setSelectedOption(title)}
               disabled={title !== "Real Estate"}
             >
               {title}
