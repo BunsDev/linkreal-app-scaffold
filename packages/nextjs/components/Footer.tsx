@@ -18,8 +18,10 @@ export const Footer = () => {
   const isLocalNetwork = targetNetwork.id === hardhat.id;
 
   return (
-    <div className="fixed bottom-1 right-5 py-5 px-1 mb-11 lg:mb-0">
-      <SwitchTheme />
+    <div className="mt-10">
+      <div className="fixed bottom-1 right-5 py-5 px-1 mb-11 lg:mb-0">
+        <SwitchTheme />
+      </div>
     </div>
   );
 };
