@@ -1,16 +1,32 @@
 import { useState } from "react";
 import clsx from "clsx";
+import { set } from "nprogress";
 
 const ListingForm = () => {
-  const [address, setAddress] = useState("");
-  const [price, setPrice] = useState("");
-  const [fractions, setFractions] = useState("");
-  const [description, setDescription] = useState("");
+  const initialFormData = {
+    address: "",
+    price: "",
+    fractions: "",
+    description: "",
+    photo: "",
+  };
+  const [formData, setFormData] = useState(initialFormData);
+
+  const { address, price, fractions, description, photo } = formData;
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.id]: e.target.value,
+    });
+  };
+  const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitting(true);
     try {
-      const formData = { address, price, fractions }; // Updated formData
+      const formData = { address, price, fractions, photo, description };
       const response = await fetch("/api/list-assets", {
         method: "POST",
         headers: {
@@ -26,6 +42,8 @@ const ListingForm = () => {
     } catch (error) {
       console.error("An error occurred while submitting form data:", error);
     }
+    setSubmitting(false);
+    setFormData(initialFormData);
   };
 
   return (
@@ -39,7 +57,7 @@ const ListingForm = () => {
             type="text"
             id="address"
             value={address}
-            onChange={e => setAddress(e.target.value)}
+            onChange={handleChange}
             className="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline"
             placeholder="Enter the address"
             required
@@ -53,7 +71,7 @@ const ListingForm = () => {
             type="number"
             id="price"
             value={price}
-            onChange={e => setPrice(e.target.value)}
+            onChange={handleChange}
             className="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline"
             placeholder="Enter the price in USD"
             required
@@ -67,7 +85,7 @@ const ListingForm = () => {
             type="number"
             id="fractions"
             value={fractions}
-            onChange={e => setFractions(e.target.value)} // Added onChange handler for fractions
+            onChange={handleChange} // Added onChange handler for fractions
             className="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline"
             placeholder="Enter the number of fractions"
             required
@@ -80,6 +98,9 @@ const ListingForm = () => {
           <input
             type="file"
             className="file-input file-input-bordered file-input-secondary file-input-sm w-full max-w-xs"
+            id="photo"
+            value={photo}
+            onChange={handleChange}
           />
         </div>
         <div className="mb-4">
@@ -89,15 +110,14 @@ const ListingForm = () => {
           <textarea
             id="description"
             value={description}
-            onChange={e => setDescription(e.target.value)}
+            onChange={handleChange}
             className="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline"
             placeholder="Enter a description"
-            required
           />
         </div>
         <div className="flex justify-center">
           <button type="submit" className="btn btn-outline">
-            Submit
+            {submitting ? "Submitting..." : "Submit"}
           </button>
         </div>
       </form>
