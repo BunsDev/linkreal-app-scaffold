@@ -275,8 +275,44 @@ const SignTOS = () => {
   );
 };
 
-const RewiewAndList = () => {
-  return <div>Review and List</div>;
+const ReviewAndList = () => {
+  const formData: any = {}; // fetch from the backend
+  const { address, price, fractions, description, photo } = formData;
+
+  const handleConfirm = async () => {};
+
+  return (
+    <div className="max-w-md mx-auto">
+      <h2 className="font-bold mb-4">Review Your Listing</h2>
+      <div className="mb-4">
+        <strong>Address:</strong> {address}
+      </div>
+      <div className="mb-4">
+        <strong>Total Value of the property (USD):</strong> {price}
+      </div>
+      <div className="mb-4">
+        <strong>Fractions Count:</strong> {fractions}
+      </div>
+      <div className="mb-4">
+        <strong>Description:</strong> {description}
+      </div>
+      <div className="mb-4">
+        <strong>Photo:</strong> {photo}
+      </div>
+      <div className="mb-4">
+        <strong>Ownership Verifier:</strong> Land Registry of Asgard
+      </div>
+      <div className="mb-4">
+        <strong>Gurantor:</strong> Asset Holder Capital
+      </div>
+      <div className="mb-4">
+        <strong>Terms of Service:</strong> Accepted
+      </div>
+      <button className="btn btn-primary mt-5" onClick={handleConfirm}>
+        Confirm and List
+      </button>
+    </div>
+  );
 };
 
 const RealEstateListing = () => {
@@ -314,7 +350,7 @@ const RealEstateListing = () => {
       {step === 2 && <OwnershipVerification />}
       {step === 3 && <IncludeGurantees />}
       {step === 4 && <SignTOS />}
-      {step === 5 && <RewiewAndList />}
+      {step === 5 && <ReviewAndList />}
     </div>
   );
 };

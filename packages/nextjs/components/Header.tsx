@@ -32,6 +32,14 @@ export const menuLinks: HeaderMenuLink[] = [
     label: "Lend Money",
     href: "/lend-money",
   },
+  {
+    label: "Verify Asset Ownership",
+    href: "/verify-ownership",
+  },
+  {
+    label: "Provide Asset Guarantees",
+    href: "/asset-guarantees",
+  },
 ];
 
 export const HeaderMenuLinks = () => {

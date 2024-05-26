@@ -36,11 +36,23 @@ const Home: NextPage = () => {
       href: "/lend-money",
       action: "Lend",
     },
+    {
+      title: "Verify Asset Ownership",
+      description: "Click the button to verify asset ownership.",
+      href: "/verify-ownership",
+      action: "Verify",
+    },
+    {
+      title: "Provide Asset Gurantees",
+      description: "Click the button to provide asset guarantees.",
+      href: "/asset-guarantees",
+      action: "Provide",
+    },
   ];
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-4 pt-10 px-10">
+      <div className="grid grid-cols-2 gap-10 pt-10 px-20">
         {cards.map((card, index) => (
           <div key={index} className="p-4 border border-gray-200 rounded-lg">
             <h2 className="card-title">{card.title}</h2>
