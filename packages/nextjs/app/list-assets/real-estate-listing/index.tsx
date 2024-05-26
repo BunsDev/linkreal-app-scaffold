@@ -234,13 +234,49 @@ const IncludeGurantees = () => {
           Or Go to this link and add collataral ( by yourself or via thid party )
         </div>
         <div className="collapse-content bg-primary text-primary-content peer-checked:bg-primary peer-checked:text-secondary-content">
-          <a href="https://docs.attest.org/docs/tutorials/create-a-schema" className="link" target="_blank">
-            https://docs.attest.org/docs/tutorials/create-a-schema
+          <a href="https://linkreal/provide-collataral/0xcurrentUserId" className="link" target="_blank">
+            https://linkreal/provide-collataral/0xcurrentUserId
           </a>
         </div>
       </div>
     </div>
   );
+};
+
+const SignTOS = () => {
+  const [tosAccepted, setTosAccepted] = useState(false);
+
+  const handleTosChange = (e: any) => {
+    setTosAccepted(e.target.checked);
+  };
+
+  const handleSignTOS = async () => {
+    // Popup metamask and sign it. Then send to the backend.
+  };
+
+  return (
+    <div className="max-w-md mx-auto">
+      <p className="block font-bold">
+        Please read this carefully before signing as this is a legally binding contract.
+      </p>
+      <div className="flex items-center">
+        <input type="checkbox" id="tos" checked={tosAccepted} onChange={handleTosChange} />
+        <label htmlFor="tos" className="ml-3">
+          I agree to the{" "}
+          <a href="https://linkreal/tos" className="link" target="_blank">
+            Terms of Service
+          </a>
+        </label>
+      </div>
+      <button disabled={!tosAccepted} className="btn btn-primary mt-5" onClick={handleSignTOS}>
+        Sign TOS
+      </button>
+    </div>
+  );
+};
+
+const RewiewAndList = () => {
+  return <div>Review and List</div>;
 };
 
 const RealEstateListing = () => {
@@ -256,7 +292,7 @@ const RealEstateListing = () => {
   const handleStepChange = (clickedStep: number) => {
     if (clickedStep >= 4) {
       // Call your backend to check if the atleast one gurantor has been added.
-      const guranterAdded = false;
+      const guranterAdded = true;
       if (!guranterAdded) {
         alert("Please add a gurantor to proceed");
         return;
@@ -277,6 +313,8 @@ const RealEstateListing = () => {
       {step === 1 && <ListingForm />}
       {step === 2 && <OwnershipVerification />}
       {step === 3 && <IncludeGurantees />}
+      {step === 4 && <SignTOS />}
+      {step === 5 && <RewiewAndList />}
     </div>
   );
 };
