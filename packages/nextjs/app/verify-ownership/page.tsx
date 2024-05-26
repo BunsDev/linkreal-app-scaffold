@@ -45,6 +45,7 @@ const VerifyOwnership: NextPage = () => {
     );
 
     try {
+      // 1. Popup metamask and gte the signed attestation from the verifier
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1000));
 
