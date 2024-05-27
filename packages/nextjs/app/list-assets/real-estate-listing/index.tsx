@@ -315,7 +315,7 @@ const ReviewAndList = () => {
   );
 };
 
-const RealEstateListing = () => {
+const IndividualAssetListing = () => {
   const steps = [
     { number: 1, title: "Listing Form" },
     { number: 2, title: "Request ownership Verfications" },
@@ -352,6 +352,34 @@ const RealEstateListing = () => {
       {step === 4 && <SignTOS />}
       {step === 5 && <ReviewAndList />}
     </div>
+  );
+};
+
+const RealEstateListing = () => {
+  const [isListing, setIsListing] = useState(false);
+
+  return (
+    <>
+      {isListing ? (
+        <IndividualAssetListing />
+      ) : (
+        <div className="max-w-3xl mx-auto mt-10 flex-col">
+          <h1 className="text-2xl font-bold mb-6">Real Estate Listings</h1>
+          <button
+            className="btn btn-outline btn-xs ml-10"
+            onClick={() => {
+              setIsListing(prevIsListing => !prevIsListing);
+            }}
+          >
+            {"Create a new Listing"}
+          </button>
+          <ul className="mt-10">
+            {/* add listings here */}
+          </ul>
+
+        </div>
+      )}
+    </>
   );
 };
 
