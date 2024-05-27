@@ -28,6 +28,10 @@ contract RealEstateTokenRegistry is
 	bytes32 public constant OWNERSHIP_VERIFIER_ROLE =
 		keccak256("OWNERSHIP_VERIFIER_ROLE");
 	bytes32 public constant GUARANTOR_ROLE = keccak256("GUARANTOR_ROLE");
+	bytes32 public constant ASSET_VALUE_UPDATER_ROLE =
+		keccak256("ASSET_VALUE_UPDATER_ROLE");
+	bytes32 public constant ASSET_APPRAISAL_UPDATER_ROLE =
+		keccak256("ASSET_APPRAISAL_UPDATER_ROLE");
 
 	IEAS public easContractInstance;
 
@@ -131,6 +135,26 @@ contract RealEstateTokenRegistry is
 			.propertyOwnershipVerifier = ownershipVerifierAddress;
 		propertyData[propertyOwnerAddress]
 			.propertyOwnerShipVerifierAttestationUID = attestationUID;
+	}
+
+	/**
+	 * @notice ASSET_VALUE_UPDATER_ROLE has to be assigned, preferably only to the AssetValueUpdater.sol contract.
+	 */
+	function updateAssetValue(
+		address propertyOwnerAddress,
+		uint newValue
+	) public onlyRole(ASSET_VALUE_UPDATER_ROLE) {
+		propertyData[propertyOwnerAddress].propertyValue = newValue;
+	}
+
+	/**
+	 * @notice ASSET_APPRAISAL_UPDATER_ROLE has to be assigned, preferably only to the AssetValueUpdater.sol contract.
+	 */
+	function updateAssetAppraisal(
+		address propertyOwnerAddress,
+		uint newValue
+	) public onlyRole(ASSET_APPRAISAL_UPDATER_ROLE) {
+		propertyData[propertyOwnerAddress].propertyValueAppraisal = newValue;
 	}
 
 	function issueRWA(
