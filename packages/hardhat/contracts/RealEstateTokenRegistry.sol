@@ -8,9 +8,12 @@ import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Pausable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 import "@ethereum-attestation-service/eas-contracts/contracts/IEAS.sol";
+import { EMPTY_UID } from "@ethereum-attestation-service/eas-contracts/contracts/Common.sol";
 
 error LinkReal__InvalidGuarantor();
 error LinkReal__InvalidGuarantorAttestation();
+error LinkReal__InvalidOwnershipVerifierAttestation();
+error LinkReal__AttestationOrCollateralRequired();
 
 contract RealEstateTokenRegistry is
 	ERC1155,
@@ -72,13 +75,16 @@ contract RealEstateTokenRegistry is
 		_unpause();
 	}
 
+	/**
+	 * @notice For now the ownership verifier has to have called attest function in EAS.sol previously.
+	 */
 	function provideGurantee(
 		address propertyOwnerAddress,
-		address guarantorAddress,
 		bytes32 attestationUID
 	) public payable {
 		// Third party asset holder companies, guarantors, insurance companies, etc can provide guarantee for the property
 		// Optionally, the gurantee claim can be backed by collateral that's equal to the value of property.
+		address guarantorAddress = msg.sender;
 		bool isGuarantor = hasRole(GUARANTOR_ROLE, guarantorAddress);
 		uint collateralAmount = msg.value;
 		uint requiredCollateralAmount = propertyData[propertyOwnerAddress]
@@ -87,7 +93,9 @@ contract RealEstateTokenRegistry is
 			revert LinkReal__InvalidGuarantor();
 		}
 		if (isGuarantor) {
-			bool isValidAttestation = easContractInstance.isAttestationValid(
+			bool isValidAttestation = _checkAttestationValidity(
+				guarantorAddress,
+				propertyOwnerAddress,
 				attestationUID
 			);
 			if (!isValidAttestation) {
@@ -101,6 +109,28 @@ contract RealEstateTokenRegistry is
 			propertyData[propertyOwnerAddress]
 				.propertyCollateralAmount = collateralAmount;
 		}
+	}
+
+	/**
+	 * @notice For now the ownership verifier has to have called attest function in EAS.sol previously.
+	 */
+	function provideOwnershipVerification(
+		address propertyOwnerAddress,
+		bytes32 attestationUID
+	) public onlyRole(OWNERSHIP_VERIFIER_ROLE) {
+		address ownershipVerifierAddress = msg.sender;
+		bool isValidAttestation = _checkAttestationValidity(
+			ownershipVerifierAddress,
+			propertyOwnerAddress,
+			attestationUID
+		);
+		if (!isValidAttestation) {
+			revert LinkReal__InvalidOwnershipVerifierAttestation();
+		}
+		propertyData[propertyOwnerAddress]
+			.propertyOwnershipVerifier = ownershipVerifierAddress;
+		propertyData[propertyOwnerAddress]
+			.propertyOwnerShipVerifierAttestationUID = attestationUID;
 	}
 
 	function issueRWA(
@@ -124,9 +154,39 @@ contract RealEstateTokenRegistry is
 	}
 
 	function _validateIssuance(address propertyOwner) internal view {
-		// 1. Does propertyOwnerAddress has collataral locked for the property? If so proceed.
-		// 2. If not Does propertyOwnerAddress has guarantor attestation for the property? If so proceed.
-		// 3. If not throw error.
+		PropertyData memory property = propertyData[propertyOwner];
+		uint collateralAmount = property.propertyCollateralAmount;
+		uint requiredCollateralAmount = property.propertyValueAppraisal;
+
+		if (collateralAmount >= requiredCollateralAmount) {
+			// 1. Does propertyOwnerAddress has collataral locked for the property? If so proceed.
+			return;
+		} else if (property.propertyGuarantorAttestationUID != EMPTY_UID) {
+			// 2. If not Does propertyOwnerAddress has guarantor attestation for the property? If so proceed.
+			return;
+		} else {
+			// 3. If not throw error.
+			revert LinkReal__AttestationOrCollateralRequired();
+		}
+	}
+
+	function _checkAttestationValidity(
+		address supposedAttester,
+		address supposedRecipient,
+		bytes32 attestationUID
+	) internal view returns (bool) {
+		bool isAttestationValid = easContractInstance.isAttestationValid(
+			attestationUID
+		);
+		Attestation memory attestation = easContractInstance.getAttestation(
+			attestationUID
+		);
+		address recipient = attestation.recipient;
+		address attester = attestation.attester;
+		return
+			isAttestationValid &&
+			recipient == supposedRecipient &&
+			attester == supposedAttester;
 	}
 
 	// The following functions are overrides required by Solidity.
