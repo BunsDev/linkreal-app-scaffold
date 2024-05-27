@@ -127,7 +127,7 @@ const ListingForm = () => {
   );
 };
 
-const OwnershipVerification = () => {
+const RequestOwnershipVerifications = () => {
   const [verifiers, setVerifiers] = useState<any>([]);
   const [selectedVerifier, setSelectedVerifier] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -171,13 +171,13 @@ const OwnershipVerification = () => {
         ))}
       </select>
       <button type="submit" className="ml-5 btn-link">
-        {submitting ? "Submitting" : "Submit"}
+        {submitting ? "Requesting" : "Request"}
       </button>
     </form>
   );
 };
 
-const IncludeGurantees = () => {
+const RequestGurantees = () => {
   const [gurantors, setGurantors] = useState<any>([]);
   const [selectedGurantor, setSelectedGurantor] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -224,7 +224,7 @@ const IncludeGurantees = () => {
             ))}
           </select>
           <button type="submit" className="ml-5 btn-link">
-            {submitting ? "Submitting" : "Submit"}
+            {submitting ? "Requesting" : "Request"}
           </button>
         </div>
       </form>
@@ -318,8 +318,8 @@ const ReviewAndList = () => {
 const RealEstateListing = () => {
   const steps = [
     { number: 1, title: "Listing Form" },
-    { number: 2, title: "Add ownership Verfications" },
-    { number: 3, title: "Add Gurantees" },
+    { number: 2, title: "Request ownership Verfications" },
+    { number: 3, title: "Request Asset Gurantees" },
     { number: 4, title: "Sign TOS" },
     { number: 5, title: "Review and List" },
   ];
@@ -328,7 +328,7 @@ const RealEstateListing = () => {
   const handleStepChange = (clickedStep: number) => {
     if (clickedStep >= 4) {
       // Call your backend to check if the atleast one gurantor has been added.
-      const guranterAdded = true;
+      const guranterAdded = false;
       if (!guranterAdded) {
         alert("Please add a gurantor to proceed");
         return;
@@ -347,8 +347,8 @@ const RealEstateListing = () => {
         ))}
       </ul>
       {step === 1 && <ListingForm />}
-      {step === 2 && <OwnershipVerification />}
-      {step === 3 && <IncludeGurantees />}
+      {step === 2 && <RequestOwnershipVerifications />}
+      {step === 3 && <RequestGurantees />}
       {step === 4 && <SignTOS />}
       {step === 5 && <ReviewAndList />}
     </div>
