@@ -134,7 +134,7 @@ const RequestOwnershipVerifications = () => {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    // Fetch pre-vetted verifiers from your backend or hardcode for now
+    // TODO: Fetch pre-vetted verifiers via a smart contract external view function. hardcoded for now
     setVerifiers(["Land Registry of Asgard", "A Titlte Search Company", "Verifier C"]);
   }, []);
 
@@ -147,6 +147,7 @@ const RequestOwnershipVerifications = () => {
     setSubmitting(true);
     console.log("Selected Verifier:", selectedVerifier);
 
+    // TODO: call backend to add the selected verifier for the property
     setTimeout(() => {
       setSubmitting(false);
     }, 1000);
@@ -185,7 +186,7 @@ const RequestGurantees = () => {
   const account = useAccount();
 
   useEffect(() => {
-    // Fetch pre-vetted Gurantors from your backend or hardcode for now
+    // TODO: Fetch pre-vetted guarntors via a smart contract external view function. hardcoded for now
     setGurantors(["Asset Holder Capital", "Some Gurantor Company", "Gurantor C"]);
   }, []);
 
@@ -198,6 +199,7 @@ const RequestGurantees = () => {
     setSubmitting(true);
     console.log({ selectedGurantor });
 
+    // TODO: call backend to add the selected gurantor for the property
     setTimeout(() => {
       setSubmitting(false);
     }, 1000);
@@ -253,7 +255,7 @@ const SignTOS = () => {
   };
 
   const handleSignTOS = async () => {
-    // Popup metamask and sign it. Then send to the backend.
+    // TODO: Popup metamask and sign it. Then save attestation in the smart contract.
   };
 
   return (
@@ -265,7 +267,7 @@ const SignTOS = () => {
         <input type="checkbox" id="tos" checked={tosAccepted} onChange={handleTosChange} />
         <label htmlFor="tos" className="ml-3">
           I agree to the{" "}
-          <a href="https://linkreal/tos" className="link" target="_blank">
+          <a href={`${HOST}/tos`} className="link" target="_blank">
             Terms of Service
           </a>
         </label>
@@ -281,7 +283,9 @@ const ReviewAndList = () => {
   const formData: any = {}; // fetch from the backend
   const { address, price, fractions, description, photo } = formData;
 
-  const handleConfirm = async () => {};
+  const handleConfirm = async () => {
+    // TODO: Call issueRWA function in the smart contract from the connected wallet.
+  };
 
   return (
     <div className="max-w-md mx-auto">
@@ -290,6 +294,7 @@ const ReviewAndList = () => {
         <strong>Address:</strong> {address}
       </div>
       <div className="mb-4">
+        {/* // this is a value user enters */}
         <strong>Total Value of the property (USD):</strong> {price}
       </div>
       <div className="mb-4">
@@ -306,6 +311,9 @@ const ReviewAndList = () => {
       </div>
       <div className="mb-4">
         <strong>Gurantor:</strong> Asset Holder Capital
+      </div>
+      <div className="mb-4">
+        <strong>Collataral:</strong> Not Provided
       </div>
       <div className="mb-4">
         <strong>Terms of Service:</strong> Accepted
@@ -330,7 +338,7 @@ const IndividualAssetListing = () => {
   const handleStepChange = (clickedStep: number) => {
     if (clickedStep >= 4) {
       // Call your backend to check if the atleast one gurantor has been added.
-      const guranterAdded = false;
+      const guranterAdded = true;
       if (!guranterAdded) {
         alert("Please add a gurantor to proceed");
         return;

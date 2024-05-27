@@ -9,6 +9,7 @@ const ProvideGuarantee: NextPage = () => {
   const { address: connectedWalletAddress } = useAccount();
   const [isGuarantor, setIsGuarantor] = useState<boolean>(false);
   const [ownerAddress, setOwnerAddress] = useState<string>("");
+  // TODO: add types to assetDetails
   const [assetDetails, setAssetDetails] = useState<Array<any>>([]);
   const searchParams = useSearchParams();
 
@@ -47,6 +48,8 @@ const ProvideGuarantee: NextPage = () => {
   };
 
   const fetchAssetDetails = async () => {
+    // TODO: if isGurantor is false, fetch all asset details for the ownerAddress from backend
+    // TODO: if isGurantor is true, fetch only the assets that this guarantor ( connectedWalletAddress ) has been requested to provide guarantee for
     try {
       //   const response = await fetch("/api/asset-details", {
       //     method: "POST",
@@ -86,20 +89,17 @@ const ProvideGuarantee: NextPage = () => {
       prevAssetDetails.map((prev: any) => (prev.id === propertyId ? { ...prev, submitting: true } : prev)),
     );
     try {
-      const response = await fetch("/api/provide-guarantee", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ propertyId, guarantorAddress: connectedWalletAddress }),
-      });
+      // TODO:
+      // 1. Popup metamask and get signed attestation of gurantee 
+      // 2. Save attestation in the smart contract
+      // TODO: Also update the db to reflect that the guarantee has been provided
 
-      if (response.ok) {
-        alert("Guarantee provided successfully");
-        fetchAssetDetails(); // Refresh the asset details after providing guarantee
-      } else {
-        alert("Failed to provide guarantee");
-      }
+      const simulateTx = await new Promise(resolve => setTimeout(resolve, 1000));
+
+      alert("Guarantee provided successfully");
+
+      // Update the list of requests
+      setAssetDetails((prevRequests: any) => prevRequests.filter((prevRequest: any) => prevRequest.id !== propertyId));
     } catch (error) {
       console.error("Error providing guarantee:", error);
       alert("Failed to provide guarantee");
@@ -114,20 +114,16 @@ const ProvideGuarantee: NextPage = () => {
       prevAssetDetails.map((prev: any) => (prev.id === propertyId ? { ...prev, submitting: true } : prev)),
     );
     try {
-      const response = await fetch("/api/provide-guarantee", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ propertyId, guarantorAddress: connectedWalletAddress }),
-      });
+      // TODO:
+      // 1. Popup metamask and call provideCollataral function in the smart contract
+      // TODO: also save collataral amount in the db for easy retrieval
 
-      if (response.ok) {
-        alert("Guarantee provided successfully");
-        fetchAssetDetails(); // Refresh the asset details after providing guarantee
-      } else {
-        alert("Failed to provide guarantee");
-      }
+      const simulateTx = await new Promise(resolve => setTimeout(resolve, 1000));
+
+      alert("Guarantee provided successfully");
+
+      // Update the list of requests
+      setAssetDetails((prevRequests: any) => prevRequests.filter((prevRequest: any) => prevRequest.id !== propertyId));
     } catch (error) {
       console.error("Error providing guarantee:", error);
       alert("Failed to provide guarantee");
