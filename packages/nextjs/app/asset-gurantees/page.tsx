@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { NextPage } from "next";
 import { useAccount } from "wagmi";
 
@@ -9,6 +10,9 @@ const ProvideGuarantee: NextPage = () => {
   const [isGuarantor, setIsGuarantor] = useState<boolean>(false);
   const [ownerAddress, setOwnerAddress] = useState<string>("");
   const [assetDetails, setAssetDetails] = useState<Array<any>>([]);
+  const searchParams = useSearchParams();
+
+  const queryWalletAddress = searchParams.get("wallet");
 
   useEffect(() => {
     const checkGuarantor = async () => {
@@ -148,7 +152,7 @@ const ProvideGuarantee: NextPage = () => {
               <input
                 type="text"
                 id="ownerAddress"
-                value={ownerAddress}
+                value={queryWalletAddress ? queryWalletAddress : ownerAddress}
                 onChange={handleOwnerAddressChange}
                 className="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline"
                 placeholder="Enter the asset owner's wallet address"

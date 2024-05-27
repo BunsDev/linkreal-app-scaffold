@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import clsx from "clsx";
 import { useAccount } from "wagmi";
+import { HOST } from "~~/settings/config";
 
 const ListingForm = () => {
   const { address: connectedWalletAddress } = useAccount();
@@ -181,6 +182,7 @@ const RequestGurantees = () => {
   const [gurantors, setGurantors] = useState<any>([]);
   const [selectedGurantor, setSelectedGurantor] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const account = useAccount();
 
   useEffect(() => {
     // Fetch pre-vetted Gurantors from your backend or hardcode for now
@@ -234,8 +236,8 @@ const RequestGurantees = () => {
           Or Go to this link and add collataral ( by yourself or via thid party )
         </div>
         <div className="collapse-content bg-primary text-primary-content peer-checked:bg-primary peer-checked:text-secondary-content">
-          <a href="https://linkreal/provide-collataral/0xcurrentUserId" className="link" target="_blank">
-            https://linkreal/provide-collataral/0xcurrentUserId
+          <a href={`${HOST}/asset-gurantees?wallet=${account.address}`} className="link" target="_blank">
+            {`${HOST}/asset-gurantees?wallet=${account.address}`}
           </a>
         </div>
       </div>
@@ -373,10 +375,7 @@ const RealEstateListing = () => {
           >
             {"Create a new Listing"}
           </button>
-          <ul className="mt-10">
-            {/* add listings here */}
-          </ul>
-
+          <ul className="mt-10">{/* add listings here */}</ul>
         </div>
       )}
     </>
