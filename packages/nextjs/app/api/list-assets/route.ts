@@ -36,7 +36,7 @@ export async function POST(request: Request) {
   //   // Insert the property into the database
   //   const result = await sql`
   //     INSERT INTO properties (connected_wallet_address, address, total_value, fractions_count, photo, description)
-  //     VALUES (${connectedWalletAddress} ${address}, ${price}, ${fractions}, ${photo}, ${description})
+  //     VALUES (${connectedWalletAddress}, ${address}, ${price}, ${fractions}, ${photo}, ${description})
   //     RETURNING *
   //   `;
 
