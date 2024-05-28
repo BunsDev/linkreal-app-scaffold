@@ -9,6 +9,7 @@ import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 import "@ethereum-attestation-service/eas-contracts/contracts/IEAS.sol";
 import { EMPTY_UID } from "@ethereum-attestation-service/eas-contracts/contracts/Common.sol";
+import "hardhat/console.sol";
 
 error LinkReal__InvalidGuarantor();
 error LinkReal__InvalidGuarantorAttestation();
@@ -53,7 +54,7 @@ contract RealEstateTokenRegistry is
 		bytes32 propertyOwnerTOSAttastationUID;
 	}
 
-	mapping(address => PropertyData) propertyData;
+	mapping(address => PropertyData) public propertyData;
 
 	constructor(
 		address defaultAdmin,
@@ -195,6 +196,14 @@ contract RealEstateTokenRegistry is
 			// 3. If not throw error.
 			revert LinkReal__AttestationOrCollateralRequired();
 		}
+	}
+
+	function test() public view returns (bool) {
+		PropertyData memory property = propertyData[msg.sender];
+		console.logBytes32(property.propertyGuarantorAttestationUID);
+		console.logBytes32(EMPTY_UID);
+		console.logBool(property.propertyGuarantorAttestationUID != EMPTY_UID);
+		return property.propertyGuarantorAttestationUID != EMPTY_UID;
 	}
 
 	function _checkAttestationValidity(
