@@ -13,6 +13,7 @@ async function main() {
 
   await registerOwnershipVerifierSchema(schemaRegistry);
   await registerGuarantorSchema(schemaRegistry);
+  await TOSSchema(schemaRegistry);
 }
 
 async function registerOwnershipVerifierSchema(schemaRegistry: SchemaRegistry) {
@@ -36,6 +37,19 @@ async function registerGuarantorSchema(schemaRegistry: SchemaRegistry) {
   const transaction = await schemaRegistry.register({
     schema,
     resolverAddress: guarantorResolverAddress,
+    revocable,
+  });
+
+  // Optional: Wait for transaction to be validated
+  await transaction.wait();
+}
+
+async function TOSSchema(schemaRegistry: SchemaRegistry) {
+  const schema = "address propertyOwner, string claimByPropertyOwner";
+  const revocable = true;
+
+  const transaction = await schemaRegistry.register({
+    schema,
     revocable,
   });
 
