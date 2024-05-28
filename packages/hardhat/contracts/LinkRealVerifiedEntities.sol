@@ -23,6 +23,9 @@ contract LinkRealVerifiedEntities is Pausable, AccessControl {
 	mapping(address => OwnershipVeriferData) public ownershipVerifierData;
 	mapping(address => GuarantorData) public guarantorData;
 
+	mapping(address => uint[]) public ownershipVerificationRequests; // verifer => propertyIds
+	mapping(address => uint[]) public guaranteeRequests; // guarantor => propertyIds
+
 	event OwnershipVerifierDataAdded(
 		address indexed verifierAddress,
 		string verifierName,
@@ -51,6 +54,29 @@ contract LinkRealVerifiedEntities is Pausable, AccessControl {
 		return bytes(guarantorData[guarantorAddress].guarantorName).length != 0;
 	}
 
+	/**
+	 * @dev This requesting ownership verification can be done via this function or off-chain logic
+	 */
+	function requestOwnershipVerification(
+		uint propertyId,
+		address requestedVerifier
+	) public {
+		require(isOwnershipVerifier(requestedVerifier), "Invalid verifier");
+		// save ownership verification request
+		ownershipVerificationRequests[requestedVerifier].push(propertyId);
+	}
+
+	/**
+	 * @dev This requesting guarantee can be done via this function or off-chain logic
+	 */
+	function requestGuarantee(uint propertyId, address requestedGuarantor)
+		public
+	{
+		require(isGuarantor(requestedGuarantor), "Invalid guarantor");
+		// save guarantee request
+		guaranteeRequests[requestedGuarantor].push(propertyId);
+	}
+
 	function setOwnershipVerifierData(
 		address verifierAddress,
 		string memory verifierName,
@@ -60,7 +86,7 @@ contract LinkRealVerifiedEntities is Pausable, AccessControl {
 			verifierName,
 			verifierPublicURL
 		);
-        ownershipVerifiers.push(verifierAddress);
+		ownershipVerifiers.push(verifierAddress);
 		emit OwnershipVerifierDataAdded(
 			verifierAddress,
 			verifierName,
@@ -77,7 +103,7 @@ contract LinkRealVerifiedEntities is Pausable, AccessControl {
 			guarantorName,
 			guarantorPublicURL
 		);
-        guarantors.push(guarantorAddress);
+		guarantors.push(guarantorAddress);
 		emit GuarantorDataAdded(
 			guarantorAddress,
 			guarantorName,

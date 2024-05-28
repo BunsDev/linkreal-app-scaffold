@@ -29,8 +29,6 @@ contract RealEstateTokenRegistry is
 	bytes32 public constant OWNERSHIP_VERIFIER_ROLE =
 		keccak256("OWNERSHIP_VERIFIER_ROLE");
 	bytes32 public constant GUARANTOR_ROLE = keccak256("GUARANTOR_ROLE");
-	bytes32 public constant ASSET_VALUE_UPDATER_ROLE =
-		keccak256("ASSET_VALUE_UPDATER_ROLE");
 	bytes32 public constant ASSET_APPRAISAL_UPDATER_ROLE =
 		keccak256("ASSET_APPRAISAL_UPDATER_ROLE");
 
@@ -43,7 +41,7 @@ contract RealEstateTokenRegistry is
 		address propertyOwner;
 		uint propertyId;
 		string propertyAddress;
-		uint propertyValue; // should get updated daily
+		uint propertyListValue; // should get updated daily
 		uint propertyValueAppraisal; // should get updated daily
 		uint propertyFractionsCount;
 		address propertyOwnershipVerifier;
@@ -54,7 +52,7 @@ contract RealEstateTokenRegistry is
 		bytes32 propertyOwnerTOSAttastationUID;
 	}
 
-	mapping(address => PropertyData) public propertyData;
+	mapping(uint => PropertyData) public propertyData; // propertyId => PropertyData
 
 	constructor(
 		address defaultAdmin,
@@ -80,12 +78,28 @@ contract RealEstateTokenRegistry is
 		_unpause();
 	}
 
+	function submitUnlistedProperty(
+		address propertyOwner,
+		uint propertyId,
+		string memory propertyAddress,
+		uint propertyListValue,
+		uint propertyFractionsCount
+	) public {
+		propertyData[propertyId].propertyOwner = propertyOwner;
+		propertyData[propertyId].propertyId = propertyId;
+		propertyData[propertyId].propertyAddress = propertyAddress;
+		propertyData[propertyId].propertyListValue = propertyListValue;
+		propertyData[propertyId]
+			.propertyFractionsCount = propertyFractionsCount;
+	}
+
 	/**
 	 * @notice For now the ownership verifier has to have called attest function in EAS.sol previously.
 	 * @dev TODO: make use of delegateAttest and call attest function inside this function.
 	 *
 	 */
 	function provideGurantee(
+		uint propertyId,
 		address propertyOwnerAddress,
 		bytes32 attestationUID
 	) public payable {
@@ -94,7 +108,7 @@ contract RealEstateTokenRegistry is
 		address guarantorAddress = msg.sender;
 		bool isGuarantor = hasRole(GUARANTOR_ROLE, guarantorAddress);
 		uint collateralAmount = msg.value;
-		uint requiredCollateralAmount = propertyData[propertyOwnerAddress]
+		uint requiredCollateralAmount = propertyData[propertyId]
 			.propertyValueAppraisal; // apprased value is used in here, instead of current value ( value of tokens )
 		if (collateralAmount <= requiredCollateralAmount && !isGuarantor) {
 			revert LinkReal__InvalidGuarantor();
@@ -108,12 +122,11 @@ contract RealEstateTokenRegistry is
 			if (!isValidAttestation) {
 				revert LinkReal__InvalidGuarantorAttestation();
 			}
-			propertyData[propertyOwnerAddress]
-				.propertyGuarantor = guarantorAddress;
-			propertyData[propertyOwnerAddress]
+			propertyData[propertyId].propertyGuarantor = guarantorAddress;
+			propertyData[propertyId]
 				.propertyGuarantorAttestationUID = attestationUID;
 		} else if (collateralAmount >= requiredCollateralAmount) {
-			propertyData[propertyOwnerAddress]
+			propertyData[propertyId]
 				.propertyCollateralAmount = collateralAmount;
 		}
 	}
@@ -123,6 +136,7 @@ contract RealEstateTokenRegistry is
 	 * @dev TODO: make use of delegateAttest and call attest function inside this function.
 	 */
 	function provideOwnershipVerification(
+		uint propertyId,
 		address propertyOwnerAddress,
 		bytes32 attestationUID
 	) public onlyRole(OWNERSHIP_VERIFIER_ROLE) {
@@ -135,54 +149,46 @@ contract RealEstateTokenRegistry is
 		if (!isValidAttestation) {
 			revert LinkReal__InvalidOwnershipVerifierAttestation();
 		}
-		propertyData[propertyOwnerAddress]
+		propertyData[propertyId]
 			.propertyOwnershipVerifier = ownershipVerifierAddress;
-		propertyData[propertyOwnerAddress]
+		propertyData[propertyId]
 			.propertyOwnerShipVerifierAttestationUID = attestationUID;
-	}
-
-	/**
-	 * @notice ASSET_VALUE_UPDATER_ROLE has to be assigned, preferably only to the AssetValueUpdater.sol contract.
-	 */
-	function updateAssetValue(
-		address propertyOwnerAddress,
-		uint newValue
-	) public onlyRole(ASSET_VALUE_UPDATER_ROLE) {
-		propertyData[propertyOwnerAddress].propertyValue = newValue;
 	}
 
 	/**
 	 * @notice ASSET_APPRAISAL_UPDATER_ROLE has to be assigned, preferably only to the AssetValueUpdater.sol contract.
 	 */
 	function updateAssetAppraisal(
-		address propertyOwnerAddress,
+		uint propertyId,
 		uint newValue
 	) public onlyRole(ASSET_APPRAISAL_UPDATER_ROLE) {
-		propertyData[propertyOwnerAddress].propertyValueAppraisal = newValue;
+		propertyData[propertyId].propertyValueAppraisal = newValue;
 	}
 
 	function issueRWA(
 		address propertyOwnerAddress,
-		uint256 id,
+		uint256 propertyId,
 		uint256 assetShares,
 		bytes memory data
 	) public onlyRole(MINTER_ROLE) {
-		_validateIssuance(propertyOwnerAddress);
-		_mint(propertyOwnerAddress, id, assetShares, data);
+		_validateIssuance(propertyId);
+		_mint(propertyOwnerAddress, propertyId, assetShares, data);
 	}
 
 	function issueRWABatch(
 		address propertyOwnerAddress,
-		uint256[] memory ids,
-		uint256[] memory amounts,
+		uint256[] memory propertyIds,
+		uint256[] memory assetShareAmounts,
 		bytes memory data
 	) public onlyRole(MINTER_ROLE) {
-		_validateIssuance(propertyOwnerAddress);
-		_mintBatch(propertyOwnerAddress, ids, amounts, data);
+		for (uint i = 0; i < propertyIds.length; i++) {
+			_validateIssuance(propertyIds[i]);
+		}
+		_mintBatch(propertyOwnerAddress, propertyIds, assetShareAmounts, data);
 	}
 
-	function _validateIssuance(address propertyOwner) internal view {
-		PropertyData memory property = propertyData[propertyOwner];
+	function _validateIssuance(uint propertyId) internal view {
+		PropertyData memory property = propertyData[propertyId];
 		uint collateralAmount = property.propertyCollateralAmount;
 		uint requiredCollateralAmount = property.propertyValueAppraisal;
 
@@ -199,7 +205,7 @@ contract RealEstateTokenRegistry is
 	}
 
 	function test() public view returns (bool) {
-		PropertyData memory property = propertyData[msg.sender];
+		PropertyData memory property = propertyData[1];
 		console.logBytes32(property.propertyGuarantorAttestationUID);
 		console.logBytes32(EMPTY_UID);
 		console.logBool(property.propertyGuarantorAttestationUID != EMPTY_UID);

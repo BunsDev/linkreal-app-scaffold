@@ -32,7 +32,7 @@ const deployLinkRealContracts: DeployFunction = async function (hre: HardhatRunt
     args: [schemaRegistry.address],
     log: true,
     autoMine: true,
-  })
+  });
 
   await deploy("RealEstateTokenRegistry", {
     from: deployer,
@@ -57,7 +57,21 @@ const deployLinkRealContracts: DeployFunction = async function (hre: HardhatRunt
     args: [deployer, deployer],
     log: true,
     autoMine: true,
-  })
+  });
+
+  await deploy("OwnershipVerifierAttestationResolver", {
+    from: deployer,
+    args: [eas.address],
+    log: true,
+    autoMine: true,
+  });
+
+  await deploy("GuarantorAttestationResolver", {
+    from: deployer,
+    args: [eas.address],
+    log: true,
+    autoMine: true,
+  });
 };
 
 export default deployLinkRealContracts;

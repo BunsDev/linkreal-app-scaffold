@@ -15,25 +15,14 @@ contract AssetValueUpdater is Pausable, AccessControl {
 	}
 
 	// TODO: make chainlink keepers call these functions daily
-    
-	function updateAssetValue(
-		address realEstateTokenRegistry,
-		address propertyOwnerAddress
-	) public {
-		uint newValue = 100; // TODO: fetch from oracle
-		RealEstateTokenRegistry(realEstateTokenRegistry).updateAssetValue(
-			propertyOwnerAddress,
-			newValue
-		);
-	}
 
 	function updateAssetValueAppraisal(
 		address realEstateTokenRegistry,
-		address propertyOwnerAddress
+		uint propertyId
 	) public {
-		uint newValue = 100; // TODO: fetch from oracle
+		uint newValue = 100; // TODO: fetch from zestimates via chainlink functions
 		RealEstateTokenRegistry(realEstateTokenRegistry).updateAssetAppraisal(
-			propertyOwnerAddress,
+			propertyId,
 			newValue
 		);
 	}
