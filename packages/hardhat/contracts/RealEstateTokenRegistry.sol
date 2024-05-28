@@ -81,6 +81,8 @@ contract RealEstateTokenRegistry is
 
 	/**
 	 * @notice For now the ownership verifier has to have called attest function in EAS.sol previously.
+	 * @dev TODO: make use of delegateAttest and call attest function inside this function.
+	 *
 	 */
 	function provideGurantee(
 		address propertyOwnerAddress,
@@ -117,6 +119,7 @@ contract RealEstateTokenRegistry is
 
 	/**
 	 * @notice For now the ownership verifier has to have called attest function in EAS.sol previously.
+	 * @dev TODO: make use of delegateAttest and call attest function inside this function.
 	 */
 	function provideOwnershipVerification(
 		address propertyOwnerAddress,

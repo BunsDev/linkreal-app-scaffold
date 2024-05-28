@@ -5,7 +5,7 @@ import { Contract } from "ethers";
 /**
  * @param hre HardhatRuntimeEnvironment object.
  */
-const deployRWARegistry: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
+const deployLinkRealContracts: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   /*
     On localhost, the deployer account is the one that comes with Hardhat, which is already funded.
 
@@ -19,19 +19,49 @@ const deployRWARegistry: DeployFunction = async function (hre: HardhatRuntimeEnv
   const { deployer } = await hre.getNamedAccounts();
   const { deploy } = hre.deployments;
 
+  const schemaRegistry = await deploy("SchemaRegistry", {
+    from: deployer,
+    // Contract constructor arguments
+    args: [],
+    log: true,
+    autoMine: true,
+  });
+
+  const eas = await deploy("EAS", {
+    from: deployer,
+    args: [schemaRegistry.address],
+    log: true,
+    autoMine: true,
+  })
+
   await deploy("RealEstateTokenRegistry", {
     from: deployer,
     // Contract constructor arguments
-    args: [deployer, deployer, deployer],
+    args: [deployer, deployer, deployer, eas.address],
     log: true,
     // autoMine: can be passed to the deploy function to make the deployment process faster on local networks by
     // automatically mining the contract deployment transaction. There is no effect on live networks.
     autoMine: true,
   });
+
+  await deploy("LinkRealVerifiedEntities", {
+    from: deployer,
+    // Contract constructor arguments
+    args: [deployer, deployer],
+    log: true,
+    autoMine: true,
+  });
+
+  await deploy("AssetValueUpdater", {
+    from: deployer,
+    args: [deployer, deployer],
+    log: true,
+    autoMine: true,
+  })
 };
 
-export default deployRWARegistry;
+export default deployLinkRealContracts;
 
 // Tags are useful if you have multiple deploy files and only want to run one of them.
 // e.g. yarn deploy --tags RWAToken
-deployRWARegistry.tags = ["RWARegistry"];
+deployLinkRealContracts.tags = ["all"];

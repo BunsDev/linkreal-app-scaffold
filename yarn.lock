@@ -2001,6 +2001,7 @@ __metadata:
   resolution: "@se-2/hardhat@workspace:packages/hardhat"
   dependencies:
     "@ethereum-attestation-service/eas-contracts": ^1.7.1
+    "@ethereum-attestation-service/eas-sdk": ^2.1.4
     "@ethersproject/abi": ^5.7.0
     "@ethersproject/providers": ^5.7.1
     "@nomicfoundation/hardhat-chai-matchers": ^2.0.3
