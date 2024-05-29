@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import clsx from "clsx";
 import { useAccount, useWriteContract } from "wagmi";
 import deployedContracts from "~~/contracts/deployedContracts";
-import { useScaffoldReadContract, useTransactor } from "~~/hooks/scaffold-eth";
+import { useScaffoldReadContract, useScaffoldWriteContract, useTransactor } from "~~/hooks/scaffold-eth";
 import { HOST, chainId } from "~~/settings/config";
+import PropertyCard from "~~/components/PropertyCard";
 
 const ListingForm = () => {
   const { address: connectedWalletAddress } = useAccount();
@@ -158,12 +159,12 @@ const RequestOwnershipVerifications = () => {
   const { address: connectedWalletAddress } = useAccount();
   const [verifiers, setVerifiers] = useState<any>([]);
   const [selectedVerifier, setSelectedVerifier] = useState("");
-  const [submitting, setSubmitting] = useState(false);
 
   const { data: ownershipVerifierStructs } = useScaffoldReadContract({
     contractName: "LinkRealVerifiedEntities",
     functionName: "returnOwnershipVeriferStructs",
   });
+  const { writeContractAsync, isPending } = useScaffoldWriteContract("LinkRealVerifiedEntities");
 
   useEffect(() => {
     // These verifiers can be stored in a offchain database for efficient fetching.
@@ -173,7 +174,6 @@ const RequestOwnershipVerifications = () => {
       : [];
     //  setVerifiers(["Land Registry of Asgard", "A Titlte Search Company", "Verifier C"]);
     verifierNames.length && setVerifiers(verifierNames);
-
   }, [ownershipVerifierStructs]);
 
   const handleVerifierChange = (e: any) => {
@@ -182,13 +182,15 @@ const RequestOwnershipVerifications = () => {
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
-    setSubmitting(true);
     console.log("Selected Verifier:", selectedVerifier);
 
     // TODO: call backend to add the selected verifier for the property
-    setTimeout(() => {
-      setSubmitting(false);
-    }, 1000);
+    // await writeContractAsync({
+    //   {
+    //     functionName: "requestOwnershipVerification",
+
+    //   }
+    // });
     // Call your backend to add the selected verifier to the property. Verifier should get notified from the backend.
   };
 
@@ -211,7 +213,7 @@ const RequestOwnershipVerifications = () => {
         ))}
       </select>
       <button type="submit" className="ml-5 btn-link">
-        {submitting ? "Requesting" : "Request"}
+        {isPending ? "Requesting" : "Request"}
       </button>
     </form>
   );
@@ -405,13 +407,21 @@ const IndividualAssetListing = () => {
 
 const RealEstateListing = () => {
   const [isListing, setIsListing] = useState(false);
+  const [propertyId, setPropertyId] = useState("");
+  const [propertyOwnerWallet, setPropertyOwnerWallet] = useState("");
+  const { address: connectedWalletAddress } = useAccount();
+  const { data, isLoading } = useScaffoldReadContract({
+    contractName: "RealEstateTokenRegistry",
+    functionName: "propertyDataByOwner",
+    args: [propertyOwnerWallet ? propertyOwnerWallet : connectedWalletAddress],
+  });
 
   return (
     <>
       {isListing ? (
         <IndividualAssetListing />
       ) : (
-        <div className="max-w-3xl mx-auto mt-10 flex-col">
+        <div className="max-w-3xl mx-auto mt-10 flex-col items-center">
           <h1 className="text-2xl font-bold mb-6">Real Estate Listings</h1>
           <button
             className="btn btn-outline btn-xs ml-10"
@@ -421,7 +431,28 @@ const RealEstateListing = () => {
           >
             {"Create a new Listing"}
           </button>
-          <ul className="mt-10">{/* add listings here */}</ul>
+          <div className="mt-5">
+            <input
+              type="text"
+              placeholder="Enter Property Owner Wallet"
+              className="input input-bordered input-xs w-full max-w-xs"
+              onChange={e => setPropertyOwnerWallet(e.target.value)}
+              value={propertyOwnerWallet ? propertyOwnerWallet : connectedWalletAddress}
+            />
+            <ul className="mt-10">
+              {isLoading ? (
+                <li>Loading...</li>
+              ) : data && data.length ? (
+                data.map((property: any, index: number) => (
+                  <li key={index}>
+                    <PropertyCard property={property} />
+                  </li>
+                ))
+              ) : (
+                <li>No Listings found</li>
+              )}
+            </ul>
+          </div>
         </div>
       )}
     </>

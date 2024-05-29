@@ -7,7 +7,7 @@ import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 const deployedContracts = {
   31337: {
     AssetValueUpdater: {
-      address: "0x68B1D87F95878fE05B998F19b66F4baba5De1aed",
+      address: "0x8A791620dd6260079BF849Dc5567aDC3F2FdC318",
       abi: [
         {
           inputs: [
@@ -1588,7 +1588,7 @@ const deployedContracts = {
       },
     },
     GuarantorAttestationResolver: {
-      address: "0xc6e7DF5E7b4f2A278906862b61205850344D4e7d",
+      address: "0x0165878A594ca255338adfa4d48449f69242Eb8F",
       abi: [
         {
           inputs: [
@@ -1999,7 +1999,7 @@ const deployedContracts = {
       },
     },
     LinkRealVerifiedEntities: {
-      address: "0x0B306BF915C4d645ff596e518fAf3F9669b97016",
+      address: "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
       abi: [
         {
           inputs: [
@@ -2764,7 +2764,7 @@ const deployedContracts = {
       },
     },
     OwnershipVerifierAttestationResolver: {
-      address: "0x3Aa5ebB10DC797CAC828524e59A333d0A371443c",
+      address: "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707",
       abi: [
         {
           inputs: [
@@ -3175,7 +3175,7 @@ const deployedContracts = {
       },
     },
     RealEstateTokenRegistry: {
-      address: "0x9A9f2CCfdE556A7E9Ff0848998Aa4a0CFD8863AE",
+      address: "0x2279B7A0a67DB372996a5FaB50D91eAA73d2eBe6",
       abi: [
         {
           inputs: [
@@ -4061,93 +4061,96 @@ const deployedContracts = {
           inputs: [
             {
               internalType: "address",
-              name: "",
+              name: "owner",
               type: "address",
-            },
-            {
-              internalType: "uint256",
-              name: "",
-              type: "uint256",
             },
           ],
           name: "propertyDataByOwner",
           outputs: [
             {
-              internalType: "address",
-              name: "propertyOwner",
-              type: "address",
-            },
-            {
-              internalType: "uint256",
-              name: "propertyId",
-              type: "uint256",
-            },
-            {
-              internalType: "string",
-              name: "propertyAddress",
-              type: "string",
-            },
-            {
-              internalType: "uint256",
-              name: "propertyListValue",
-              type: "uint256",
-            },
-            {
-              internalType: "uint256",
-              name: "propertyValueAppraisal",
-              type: "uint256",
-            },
-            {
-              internalType: "uint256",
-              name: "propertyFractionsCount",
-              type: "uint256",
-            },
-            {
-              internalType: "address",
-              name: "propertyOwnershipVerifier",
-              type: "address",
-            },
-            {
-              internalType: "address",
-              name: "propertyGuarantor",
-              type: "address",
-            },
-            {
-              internalType: "bytes32",
-              name: "propertyOwnerShipVerifierAttestationUID",
-              type: "bytes32",
-            },
-            {
-              internalType: "bytes32",
-              name: "propertyGuarantorAttestationUID",
-              type: "bytes32",
-            },
-            {
-              internalType: "uint256",
-              name: "propertyCollateralAmount",
-              type: "uint256",
-            },
-            {
-              internalType: "bytes32",
-              name: "propertyOwnerTOSAttastationUID",
-              type: "bytes32",
-            },
-            {
               components: [
                 {
-                  internalType: "string",
-                  name: "propertyImageURL",
-                  type: "string",
+                  internalType: "address",
+                  name: "propertyOwner",
+                  type: "address",
+                },
+                {
+                  internalType: "uint256",
+                  name: "propertyId",
+                  type: "uint256",
                 },
                 {
                   internalType: "string",
-                  name: "description",
+                  name: "propertyAddress",
                   type: "string",
                 },
+                {
+                  internalType: "uint256",
+                  name: "propertyListValue",
+                  type: "uint256",
+                },
+                {
+                  internalType: "uint256",
+                  name: "propertyValueAppraisal",
+                  type: "uint256",
+                },
+                {
+                  internalType: "uint256",
+                  name: "propertyFractionsCount",
+                  type: "uint256",
+                },
+                {
+                  internalType: "address",
+                  name: "propertyOwnershipVerifier",
+                  type: "address",
+                },
+                {
+                  internalType: "address",
+                  name: "propertyGuarantor",
+                  type: "address",
+                },
+                {
+                  internalType: "bytes32",
+                  name: "propertyOwnerShipVerifierAttestationUID",
+                  type: "bytes32",
+                },
+                {
+                  internalType: "bytes32",
+                  name: "propertyGuarantorAttestationUID",
+                  type: "bytes32",
+                },
+                {
+                  internalType: "uint256",
+                  name: "propertyCollateralAmount",
+                  type: "uint256",
+                },
+                {
+                  internalType: "bytes32",
+                  name: "propertyOwnerTOSAttastationUID",
+                  type: "bytes32",
+                },
+                {
+                  components: [
+                    {
+                      internalType: "string",
+                      name: "propertyImageURL",
+                      type: "string",
+                    },
+                    {
+                      internalType: "string",
+                      name: "description",
+                      type: "string",
+                    },
+                  ],
+                  internalType:
+                    "struct RealEstateTokenRegistry.propertyMetadata",
+                  name: "metadata",
+                  type: "tuple",
+                },
               ],
-              internalType: "struct RealEstateTokenRegistry.propertyMetadata",
-              name: "metadata",
-              type: "tuple",
+              internalType: "struct RealEstateTokenRegistry.PropertyData[]",
+              name: "",
+              type: "tuple[]",
             },
           ],
           stateMutability: "view",

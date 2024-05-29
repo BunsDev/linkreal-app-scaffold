@@ -64,7 +64,7 @@ contract RealEstateTokenRegistry is
 	mapping(uint => PropertyData) public propertyData; // propertyId => PropertyData
 
 	// TODO: remove reduntant data storage onchain and fetch via offchain DS
-	mapping(address => PropertyData[]) public propertyDataByOwner; // propertyOwner => PropertyData[]
+	mapping(address => PropertyData[]) private _propertyDataByOwner; // propertyOwner => PropertyData[]
 
 	constructor(
 		address defaultAdmin,
@@ -76,6 +76,12 @@ contract RealEstateTokenRegistry is
 		_grantRole(PAUSER_ROLE, pauser);
 		_grantRole(MINTER_ROLE, minter);
 		easContractInstance = IEAS(easContractAddress);
+	}
+
+	function propertyDataByOwner(
+		address owner
+	) public view returns (PropertyData[] memory) {
+		return _propertyDataByOwner[owner];
 	}
 
 	function setURI(string memory newuri) public onlyRole(URI_SETTER_ROLE) {
@@ -118,7 +124,7 @@ contract RealEstateTokenRegistry is
 			})
 		});
 		propertyData[propertyId] = _propertyData;
-		propertyDataByOwner[propertyOwner].push(_propertyData);
+		_propertyDataByOwner[propertyOwner].push(_propertyData);
 	}
 
 	/**
