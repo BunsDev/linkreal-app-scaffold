@@ -59,7 +59,8 @@ contract RealEstateTokenRegistry is
 		string description;
 	}
 
-	uint public currentPropertyIdCount = 0; // Include the unlisted properties as well
+	// mapi public currentPropertyIdCount = 0; // 
+	mapping(address => uint) public currentPropertyIdCount; // Include the unlisted properties as well
 
 	mapping(address => mapping(uint => PropertyData)) public propertyData; // propertyOwner[propertyId] => PropertyData
 
@@ -104,7 +105,7 @@ contract RealEstateTokenRegistry is
 		string memory propertyImageURL,
 		string memory description
 	) public {
-		uint propertyId = currentPropertyIdCount + 1;
+		uint propertyId = currentPropertyIdCount[propertyOwner] + 1; // Property IDs start from 1
 		PropertyData memory _propertyData = PropertyData({
 			propertyOwner: propertyOwner,
 			propertyId: propertyId,
