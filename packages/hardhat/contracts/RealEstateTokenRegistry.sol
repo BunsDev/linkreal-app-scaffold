@@ -59,7 +59,12 @@ contract RealEstateTokenRegistry is
 		string description;
 	}
 
+	uint public currentPropertyIdCount = 0; // Include the unlisted properties as well
+
 	mapping(uint => PropertyData) public propertyData; // propertyId => PropertyData
+
+	// TODO: remove reduntant data storage onchain and fetch via offchain DS
+	mapping(address => PropertyData[]) public propertyDataByOwner; // propertyOwner => PropertyData[]
 
 	constructor(
 		address defaultAdmin,
@@ -87,21 +92,33 @@ contract RealEstateTokenRegistry is
 
 	function submitUnlistedProperty(
 		address propertyOwner,
-		uint propertyId,
 		string memory propertyAddress,
 		uint propertyListValue,
 		uint propertyFractionsCount,
 		string memory propertyImageURL,
 		string memory description
 	) public {
-		propertyData[propertyId].propertyOwner = propertyOwner;
-		propertyData[propertyId].propertyId = propertyId;
-		propertyData[propertyId].propertyAddress = propertyAddress;
-		propertyData[propertyId].propertyListValue = propertyListValue;
-		propertyData[propertyId]
-			.propertyFractionsCount = propertyFractionsCount;
-		propertyData[propertyId].metadata.propertyImageURL = propertyImageURL;
-		propertyData[propertyId].metadata.description = description;
+		uint propertyId = currentPropertyIdCount + 1;
+		PropertyData memory _propertyData = PropertyData({
+			propertyOwner: propertyOwner,
+			propertyId: propertyId,
+			propertyAddress: propertyAddress,
+			propertyListValue: propertyListValue,
+			propertyValueAppraisal: 0,
+			propertyFractionsCount: propertyFractionsCount,
+			propertyOwnershipVerifier: address(0),
+			propertyGuarantor: address(0),
+			propertyOwnerShipVerifierAttestationUID: EMPTY_UID,
+			propertyGuarantorAttestationUID: EMPTY_UID,
+			propertyCollateralAmount: 0,
+			propertyOwnerTOSAttastationUID: EMPTY_UID,
+			metadata: propertyMetadata({
+				propertyImageURL: propertyImageURL,
+				description: description
+			})
+		});
+		propertyData[propertyId] = _propertyData;
+		propertyDataByOwner[propertyOwner].push(_propertyData);
 	}
 
 	/**

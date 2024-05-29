@@ -9,16 +9,21 @@ contract LinkRealVerifiedEntities is Pausable, AccessControl {
 	bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
 
 	struct OwnershipVeriferData {
+		address verifierAddress;
 		string ownershipVerifierName;
 		string ownershipVerifierPublicURL;
 	}
 	address[] public ownershipVerifiers;
 
 	struct GuarantorData {
+		address guarantorAddress;
 		string guarantorName;
 		string guarantorPublicURL;
 	}
 	address[] public guarantors;
+
+	OwnershipVeriferData[] public ownershipVerifierDataArray; // TODO: remove reduntant data storage onchain and fetch via offchain DS
+	GuarantorData[] public guarantorDataArray; // TODO: remove reduntant data storage onchain and fetch via offchain DS
 
 	mapping(address => OwnershipVeriferData) public ownershipVerifierData;
 	mapping(address => GuarantorData) public guarantorData;
@@ -54,6 +59,22 @@ contract LinkRealVerifiedEntities is Pausable, AccessControl {
 		return bytes(guarantorData[guarantorAddress].guarantorName).length != 0;
 	}
 
+	function returnOwnershipVeriferStructs()
+		public
+		view
+		returns (OwnershipVeriferData[] memory)
+	{
+		return ownershipVerifierDataArray;
+	}
+
+	function returnGuarantorStructs()
+		public
+		view
+		returns (GuarantorData[] memory)
+	{
+		return guarantorDataArray;
+	}
+
 	/**
 	 * @dev This requesting ownership verification can be done via this function or off-chain logic
 	 */
@@ -69,9 +90,10 @@ contract LinkRealVerifiedEntities is Pausable, AccessControl {
 	/**
 	 * @dev This requesting guarantee can be done via this function or off-chain logic
 	 */
-	function requestGuarantee(uint propertyId, address requestedGuarantor)
-		public
-	{
+	function requestGuarantee(
+		uint propertyId,
+		address requestedGuarantor
+	) public {
 		require(isGuarantor(requestedGuarantor), "Invalid guarantor");
 		// save guarantee request
 		guaranteeRequests[requestedGuarantor].push(propertyId);
@@ -82,11 +104,14 @@ contract LinkRealVerifiedEntities is Pausable, AccessControl {
 		string memory verifierName,
 		string memory verifierPublicURL
 	) public onlyRole(DEFAULT_ADMIN_ROLE) {
-		ownershipVerifierData[verifierAddress] = OwnershipVeriferData(
+		OwnershipVeriferData memory _verifierData = OwnershipVeriferData(
+			verifierAddress,
 			verifierName,
 			verifierPublicURL
 		);
+		ownershipVerifierData[verifierAddress] = _verifierData;
 		ownershipVerifiers.push(verifierAddress);
+		ownershipVerifierDataArray.push(_verifierData);
 		emit OwnershipVerifierDataAdded(
 			verifierAddress,
 			verifierName,
@@ -99,11 +124,14 @@ contract LinkRealVerifiedEntities is Pausable, AccessControl {
 		string memory guarantorName,
 		string memory guarantorPublicURL
 	) public onlyRole(DEFAULT_ADMIN_ROLE) {
-		guarantorData[guarantorAddress] = GuarantorData(
+		GuarantorData memory _guarantorData = GuarantorData(
+			guarantorAddress,
 			guarantorName,
 			guarantorPublicURL
 		);
+		guarantorData[guarantorAddress] = _guarantorData;
 		guarantors.push(guarantorAddress);
+		guarantorDataArray.push(_guarantorData);
 		emit GuarantorDataAdded(
 			guarantorAddress,
 			guarantorName,

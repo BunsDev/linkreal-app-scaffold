@@ -1,20 +1,27 @@
 import { useEffect, useState } from "react";
 import clsx from "clsx";
-import { useAccount } from "wagmi";
-import { HOST } from "~~/settings/config";
+import { useAccount, useWriteContract } from "wagmi";
+import deployedContracts from "~~/contracts/deployedContracts";
+import { useScaffoldReadContract, useTransactor } from "~~/hooks/scaffold-eth";
+import { HOST, chainId } from "~~/settings/config";
 
 const ListingForm = () => {
   const { address: connectedWalletAddress } = useAccount();
+
+  const { writeContractAsync, isPending } = useWriteContract();
+  const writeTx = useTransactor();
+
   const initialFormData = {
+    owner: "",
     address: "",
     price: "",
     fractions: "",
-    description: "",
     photo: "",
+    description: "",
   };
   const [formData, setFormData] = useState(initialFormData);
 
-  const { address, price, fractions, description, photo } = formData;
+  const { owner, address, price, fractions, photo, description } = formData;
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({
@@ -28,22 +35,27 @@ const ListingForm = () => {
     e.preventDefault();
     setSubmitting(true);
     try {
-      const formData = { address, price, fractions, photo, description };
-      const response = await fetch("/api/list-assets", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ formData, connectedWalletAddress }),
-      });
-      console.log({ response });
-      if (response.ok) {
-        console.log("Form data submitted successfully", response);
-      } else {
-        alert("Failed to submit form data");
-      }
+      const writeContractAsyncWithParams = () =>
+        writeContractAsync({
+          address: deployedContracts[chainId].RealEstateTokenRegistry.address,
+          abi: deployedContracts[chainId].RealEstateTokenRegistry.abi,
+          functionName: "submitUnlistedProperty",
+          args: [
+            formData.owner,
+            formData.address,
+            BigInt(formData.price),
+            BigInt(formData.fractions),
+            formData.photo,
+            formData.description,
+          ],
+        });
+
+      await writeTx(writeContractAsyncWithParams, { blockConfirmations: 1 });
+
+      alert("Form data saved successfully");
     } catch (error) {
-      console.error("An error occurred while submitting form data:", error);
+      console.error("An error occurred while saving form data transaction:", error);
+      alert("An error occurred while saving form data transaction");
     }
     setSubmitting(false);
     setFormData(initialFormData);
@@ -52,6 +64,20 @@ const ListingForm = () => {
   return (
     <div>
       <form onSubmit={handleSubmit} className="max-w-md mx-auto">
+        <div className="mb-4">
+          <label htmlFor="owner" className="block font-bold mb-2">
+            Owner Address
+          </label>
+          <input
+            type="text"
+            id="owner"
+            value={owner}
+            onChange={handleChange}
+            className="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline"
+            placeholder="Enter the Property Owner Address"
+            required
+          />
+        </div>
         <div className="mb-4">
           <label htmlFor="address" className="block font-bold mb-2">
             Address
@@ -129,14 +155,26 @@ const ListingForm = () => {
 };
 
 const RequestOwnershipVerifications = () => {
+  const { address: connectedWalletAddress } = useAccount();
   const [verifiers, setVerifiers] = useState<any>([]);
   const [selectedVerifier, setSelectedVerifier] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  const { data: ownershipVerifierStructs } = useScaffoldReadContract({
+    contractName: "LinkRealVerifiedEntities",
+    functionName: "returnOwnershipVeriferStructs",
+  });
+
   useEffect(() => {
-    // TODO: Fetch pre-vetted verifiers via a smart contract external view function. hardcoded for now
-    setVerifiers(["Land Registry of Asgard", "A Titlte Search Company", "Verifier C"]);
-  }, []);
+    // These verifiers can be stored in a offchain database for efficient fetching.
+    console.log("Ownership verifier structs", ownershipVerifierStructs);
+    const verifierNames = ownershipVerifierStructs
+      ? ownershipVerifierStructs.map((verifier: any) => verifier.ownershipVerifierName)
+      : [];
+    //  setVerifiers(["Land Registry of Asgard", "A Titlte Search Company", "Verifier C"]);
+    verifierNames.length && setVerifiers(verifierNames);
+
+  }, [ownershipVerifierStructs]);
 
   const handleVerifierChange = (e: any) => {
     setSelectedVerifier(e.target.value);

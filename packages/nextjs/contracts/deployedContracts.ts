@@ -7,7 +7,7 @@ import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 const deployedContracts = {
   31337: {
     AssetValueUpdater: {
-      address: "0xA51c1fc2f0D1a1b8494Ed1FE312d7C3a78Ed91C0",
+      address: "0x68B1D87F95878fE05B998F19b66F4baba5De1aed",
       abi: [
         {
           inputs: [
@@ -322,24 +322,6 @@ const deployedContracts = {
         {
           inputs: [],
           name: "unpause",
-          outputs: [],
-          stateMutability: "nonpayable",
-          type: "function",
-        },
-        {
-          inputs: [
-            {
-              internalType: "address",
-              name: "realEstateTokenRegistry",
-              type: "address",
-            },
-            {
-              internalType: "uint256",
-              name: "propertyId",
-              type: "uint256",
-            },
-          ],
-          name: "updateAssetValue",
           outputs: [],
           stateMutability: "nonpayable",
           type: "function",
@@ -1606,7 +1588,7 @@ const deployedContracts = {
       },
     },
     GuarantorAttestationResolver: {
-      address: "0x9A676e781A523b5d0C0e43731313A708CB607508",
+      address: "0xc6e7DF5E7b4f2A278906862b61205850344D4e7d",
       abi: [
         {
           inputs: [
@@ -2017,7 +1999,7 @@ const deployedContracts = {
       },
     },
     LinkRealVerifiedEntities: {
-      address: "0xB7f8BC63BbcaD18155201308C8f3540b07f84F5e",
+      address: "0x0B306BF915C4d645ff596e518fAf3F9669b97016",
       abi: [
         {
           inputs: [
@@ -2315,6 +2297,40 @@ const deployedContracts = {
           name: "guarantorData",
           outputs: [
             {
+              internalType: "address",
+              name: "guarantorAddress",
+              type: "address",
+            },
+            {
+              internalType: "string",
+              name: "guarantorName",
+              type: "string",
+            },
+            {
+              internalType: "string",
+              name: "guarantorPublicURL",
+              type: "string",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          name: "guarantorDataArray",
+          outputs: [
+            {
+              internalType: "address",
+              name: "guarantorAddress",
+              type: "address",
+            },
+            {
               internalType: "string",
               name: "guarantorName",
               type: "string",
@@ -2444,6 +2460,40 @@ const deployedContracts = {
           name: "ownershipVerifierData",
           outputs: [
             {
+              internalType: "address",
+              name: "verifierAddress",
+              type: "address",
+            },
+            {
+              internalType: "string",
+              name: "ownershipVerifierName",
+              type: "string",
+            },
+            {
+              internalType: "string",
+              name: "ownershipVerifierPublicURL",
+              type: "string",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          name: "ownershipVerifierDataArray",
+          outputs: [
+            {
+              internalType: "address",
+              name: "verifierAddress",
+              type: "address",
+            },
+            {
               internalType: "string",
               name: "ownershipVerifierName",
               type: "string",
@@ -2551,6 +2601,67 @@ const deployedContracts = {
           type: "function",
         },
         {
+          inputs: [],
+          name: "returnGuarantorStructs",
+          outputs: [
+            {
+              components: [
+                {
+                  internalType: "address",
+                  name: "guarantorAddress",
+                  type: "address",
+                },
+                {
+                  internalType: "string",
+                  name: "guarantorName",
+                  type: "string",
+                },
+                {
+                  internalType: "string",
+                  name: "guarantorPublicURL",
+                  type: "string",
+                },
+              ],
+              internalType: "struct LinkRealVerifiedEntities.GuarantorData[]",
+              name: "",
+              type: "tuple[]",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "returnOwnershipVeriferStructs",
+          outputs: [
+            {
+              components: [
+                {
+                  internalType: "address",
+                  name: "verifierAddress",
+                  type: "address",
+                },
+                {
+                  internalType: "string",
+                  name: "ownershipVerifierName",
+                  type: "string",
+                },
+                {
+                  internalType: "string",
+                  name: "ownershipVerifierPublicURL",
+                  type: "string",
+                },
+              ],
+              internalType:
+                "struct LinkRealVerifiedEntities.OwnershipVeriferData[]",
+              name: "",
+              type: "tuple[]",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
           inputs: [
             {
               internalType: "bytes32",
@@ -2653,7 +2764,7 @@ const deployedContracts = {
       },
     },
     OwnershipVerifierAttestationResolver: {
-      address: "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82",
+      address: "0x3Aa5ebB10DC797CAC828524e59A333d0A371443c",
       abi: [
         {
           inputs: [
@@ -3064,7 +3175,7 @@ const deployedContracts = {
       },
     },
     RealEstateTokenRegistry: {
-      address: "0x610178dA211FEF7D417bC0e6FeD39F05609AD788",
+      address: "0x9A9f2CCfdE556A7E9Ff0848998Aa4a0CFD8863AE",
       abi: [
         {
           inputs: [
@@ -3479,19 +3590,6 @@ const deployedContracts = {
         },
         {
           inputs: [],
-          name: "ASSET_VALUE_UPDATER_ROLE",
-          outputs: [
-            {
-              internalType: "bytes32",
-              name: "",
-              type: "bytes32",
-            },
-          ],
-          stateMutability: "view",
-          type: "function",
-        },
-        {
-          inputs: [],
           name: "DEFAULT_ADMIN_ROLE",
           outputs: [
             {
@@ -3660,6 +3758,19 @@ const deployedContracts = {
           name: "burnBatch",
           outputs: [],
           stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "currentPropertyIdCount",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
           type: "function",
         },
         {
@@ -3925,6 +4036,119 @@ const deployedContracts = {
               name: "propertyOwnerTOSAttastationUID",
               type: "bytes32",
             },
+            {
+              components: [
+                {
+                  internalType: "string",
+                  name: "propertyImageURL",
+                  type: "string",
+                },
+                {
+                  internalType: "string",
+                  name: "description",
+                  type: "string",
+                },
+              ],
+              internalType: "struct RealEstateTokenRegistry.propertyMetadata",
+              name: "metadata",
+              type: "tuple",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          name: "propertyDataByOwner",
+          outputs: [
+            {
+              internalType: "address",
+              name: "propertyOwner",
+              type: "address",
+            },
+            {
+              internalType: "uint256",
+              name: "propertyId",
+              type: "uint256",
+            },
+            {
+              internalType: "string",
+              name: "propertyAddress",
+              type: "string",
+            },
+            {
+              internalType: "uint256",
+              name: "propertyListValue",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "propertyValueAppraisal",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "propertyFractionsCount",
+              type: "uint256",
+            },
+            {
+              internalType: "address",
+              name: "propertyOwnershipVerifier",
+              type: "address",
+            },
+            {
+              internalType: "address",
+              name: "propertyGuarantor",
+              type: "address",
+            },
+            {
+              internalType: "bytes32",
+              name: "propertyOwnerShipVerifierAttestationUID",
+              type: "bytes32",
+            },
+            {
+              internalType: "bytes32",
+              name: "propertyGuarantorAttestationUID",
+              type: "bytes32",
+            },
+            {
+              internalType: "uint256",
+              name: "propertyCollateralAmount",
+              type: "uint256",
+            },
+            {
+              internalType: "bytes32",
+              name: "propertyOwnerTOSAttastationUID",
+              type: "bytes32",
+            },
+            {
+              components: [
+                {
+                  internalType: "string",
+                  name: "propertyImageURL",
+                  type: "string",
+                },
+                {
+                  internalType: "string",
+                  name: "description",
+                  type: "string",
+                },
+              ],
+              internalType: "struct RealEstateTokenRegistry.propertyMetadata",
+              name: "metadata",
+              type: "tuple",
+            },
           ],
           stateMutability: "view",
           type: "function",
@@ -4116,11 +4340,6 @@ const deployedContracts = {
               type: "address",
             },
             {
-              internalType: "uint256",
-              name: "propertyId",
-              type: "uint256",
-            },
-            {
               internalType: "string",
               name: "propertyAddress",
               type: "string",
@@ -4134,6 +4353,16 @@ const deployedContracts = {
               internalType: "uint256",
               name: "propertyFractionsCount",
               type: "uint256",
+            },
+            {
+              internalType: "string",
+              name: "propertyImageURL",
+              type: "string",
+            },
+            {
+              internalType: "string",
+              name: "description",
+              type: "string",
             },
           ],
           name: "submitUnlistedProperty",
@@ -4226,24 +4455,6 @@ const deployedContracts = {
             },
           ],
           name: "updateAssetAppraisal",
-          outputs: [],
-          stateMutability: "nonpayable",
-          type: "function",
-        },
-        {
-          inputs: [
-            {
-              internalType: "uint256",
-              name: "propertyId",
-              type: "uint256",
-            },
-            {
-              internalType: "uint256",
-              name: "newValue",
-              type: "uint256",
-            },
-          ],
-          name: "updateAssetValue",
           outputs: [],
           stateMutability: "nonpayable",
           type: "function",
