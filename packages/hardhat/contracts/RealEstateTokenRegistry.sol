@@ -125,6 +125,7 @@ contract RealEstateTokenRegistry is
 			})
 		});
 		propertyData[propertyOwner][propertyId] = _propertyData;
+		currentPropertyIdCount[propertyOwner] = propertyId;
 		_propertyDataByOwner[propertyOwner].push(_propertyData);
 	}
 
