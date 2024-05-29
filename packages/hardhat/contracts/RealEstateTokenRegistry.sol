@@ -50,6 +50,13 @@ contract RealEstateTokenRegistry is
 		bytes32 propertyGuarantorAttestationUID;
 		uint propertyCollateralAmount;
 		bytes32 propertyOwnerTOSAttastationUID;
+		propertyMetadata metadata;
+	}
+
+	// To temporarliy make stack too deep error go away
+	struct propertyMetadata {
+		string propertyImageURL;
+		string description;
 	}
 
 	mapping(uint => PropertyData) public propertyData; // propertyId => PropertyData
@@ -83,7 +90,9 @@ contract RealEstateTokenRegistry is
 		uint propertyId,
 		string memory propertyAddress,
 		uint propertyListValue,
-		uint propertyFractionsCount
+		uint propertyFractionsCount,
+		string memory propertyImageURL,
+		string memory description
 	) public {
 		propertyData[propertyId].propertyOwner = propertyOwner;
 		propertyData[propertyId].propertyId = propertyId;
@@ -91,6 +100,8 @@ contract RealEstateTokenRegistry is
 		propertyData[propertyId].propertyListValue = propertyListValue;
 		propertyData[propertyId]
 			.propertyFractionsCount = propertyFractionsCount;
+		propertyData[propertyId].metadata.propertyImageURL = propertyImageURL;
+		propertyData[propertyId].metadata.description = description;
 	}
 
 	/**
