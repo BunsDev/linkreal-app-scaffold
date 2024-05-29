@@ -7,6 +7,8 @@ import PropertyReviewCard from "~~/components/PropertyReviewCard";
 import deployedContracts from "~~/contracts/deployedContracts";
 import { useScaffoldReadContract, useScaffoldWriteContract, useTransactor } from "~~/hooks/scaffold-eth";
 import { HOST, chainId } from "~~/settings/config";
+import { attestTos } from "~~/utils/attestations";
+import { useEthersSigner } from "~~/hooks/easWagmiHooks";
 
 const ListingForm = ({ property, createQueryString }: any) => {
   const { address: connectedWalletAddress } = useAccount();
@@ -352,13 +354,21 @@ const RequestGurantees = () => {
 
 const SignTOS = () => {
   const [tosAccepted, setTosAccepted] = useState(false);
+  const signer = useEthersSigner();
+  // const signer = useSigner()
 
   const handleTosChange = (e: any) => {
     setTosAccepted(e.target.checked);
   };
 
   const handleSignTOS = async () => {
-    // TODO: Popup metamask and sign it. Then save attestation in the smart contract.
+    try {
+      await attestTos(signer);
+      alert("TOS signed successfully");
+    } catch (error) {
+      console.error("An error occurred while signing TOS:", error);
+      alert("An error occurred while signing TOS");
+    }
   };
 
   return (
