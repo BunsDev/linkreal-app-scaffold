@@ -61,7 +61,7 @@ contract RealEstateTokenRegistry is
 
 	uint public currentPropertyIdCount = 0; // Include the unlisted properties as well
 
-	mapping(uint => PropertyData) public propertyData; // propertyId => PropertyData
+	mapping(address => mapping(uint => PropertyData)) public propertyData; // propertyOwner[propertyId] => PropertyData
 
 	// TODO: remove reduntant data storage onchain and fetch via offchain DS
 	mapping(address => PropertyData[]) private _propertyDataByOwner; // propertyOwner => PropertyData[]
@@ -123,7 +123,7 @@ contract RealEstateTokenRegistry is
 				description: description
 			})
 		});
-		propertyData[propertyId] = _propertyData;
+		propertyData[propertyOwner][propertyId] = _propertyData;
 		_propertyDataByOwner[propertyOwner].push(_propertyData);
 	}
 
@@ -142,8 +142,9 @@ contract RealEstateTokenRegistry is
 		address guarantorAddress = msg.sender;
 		bool isGuarantor = hasRole(GUARANTOR_ROLE, guarantorAddress);
 		uint collateralAmount = msg.value;
-		uint requiredCollateralAmount = propertyData[propertyId]
-			.propertyValueAppraisal; // apprased value is used in here, instead of current value ( value of tokens )
+		uint requiredCollateralAmount = propertyData[propertyOwnerAddress][
+			propertyId
+		].propertyValueAppraisal; // apprased value is used in here, instead of current value ( value of tokens )
 		if (collateralAmount <= requiredCollateralAmount && !isGuarantor) {
 			revert LinkReal__InvalidGuarantor();
 		}
@@ -156,11 +157,11 @@ contract RealEstateTokenRegistry is
 			if (!isValidAttestation) {
 				revert LinkReal__InvalidGuarantorAttestation();
 			}
-			propertyData[propertyId].propertyGuarantor = guarantorAddress;
-			propertyData[propertyId]
+			propertyData[propertyOwnerAddress][propertyId].propertyGuarantor = guarantorAddress;
+			propertyData[propertyOwnerAddress][propertyId]
 				.propertyGuarantorAttestationUID = attestationUID;
 		} else if (collateralAmount >= requiredCollateralAmount) {
-			propertyData[propertyId]
+			propertyData[propertyOwnerAddress][propertyId]
 				.propertyCollateralAmount = collateralAmount;
 		}
 	}
@@ -183,9 +184,9 @@ contract RealEstateTokenRegistry is
 		if (!isValidAttestation) {
 			revert LinkReal__InvalidOwnershipVerifierAttestation();
 		}
-		propertyData[propertyId]
+		propertyData[propertyOwnerAddress][propertyId]
 			.propertyOwnershipVerifier = ownershipVerifierAddress;
-		propertyData[propertyId]
+		propertyData[propertyOwnerAddress][propertyId]
 			.propertyOwnerShipVerifierAttestationUID = attestationUID;
 	}
 
@@ -193,10 +194,11 @@ contract RealEstateTokenRegistry is
 	 * @notice ASSET_APPRAISAL_UPDATER_ROLE has to be assigned, preferably only to the AssetValueUpdater.sol contract.
 	 */
 	function updateAssetAppraisal(
+		address propertyOwnerAddress,
 		uint propertyId,
 		uint newValue
 	) public onlyRole(ASSET_APPRAISAL_UPDATER_ROLE) {
-		propertyData[propertyId].propertyValueAppraisal = newValue;
+		propertyData[propertyOwnerAddress][propertyId].propertyValueAppraisal = newValue;
 	}
 
 	function issueRWA(
@@ -205,7 +207,7 @@ contract RealEstateTokenRegistry is
 		uint256 assetShares,
 		bytes memory data
 	) public onlyRole(MINTER_ROLE) {
-		_validateIssuance(propertyId);
+		_validateIssuance(propertyOwnerAddress, propertyId);
 		_mint(propertyOwnerAddress, propertyId, assetShares, data);
 	}
 
@@ -216,13 +218,13 @@ contract RealEstateTokenRegistry is
 		bytes memory data
 	) public onlyRole(MINTER_ROLE) {
 		for (uint i = 0; i < propertyIds.length; i++) {
-			_validateIssuance(propertyIds[i]);
+			_validateIssuance(propertyOwnerAddress,propertyIds[i]);
 		}
 		_mintBatch(propertyOwnerAddress, propertyIds, assetShareAmounts, data);
 	}
 
-	function _validateIssuance(uint propertyId) internal view {
-		PropertyData memory property = propertyData[propertyId];
+	function _validateIssuance(address propertyOwnerAddress,uint propertyId) internal view {
+		PropertyData memory property = propertyData[propertyOwnerAddress][propertyId];
 		uint collateralAmount = property.propertyCollateralAmount;
 		uint requiredCollateralAmount = property.propertyValueAppraisal;
 
@@ -236,14 +238,6 @@ contract RealEstateTokenRegistry is
 			// 3. If not throw error.
 			revert LinkReal__AttestationOrCollateralRequired();
 		}
-	}
-
-	function test() public view returns (bool) {
-		PropertyData memory property = propertyData[1];
-		console.logBytes32(property.propertyGuarantorAttestationUID);
-		console.logBytes32(EMPTY_UID);
-		console.logBool(property.propertyGuarantorAttestationUID != EMPTY_UID);
-		return property.propertyGuarantorAttestationUID != EMPTY_UID;
 	}
 
 	function _checkAttestationValidity(
