@@ -28,8 +28,24 @@ contract LinkRealVerifiedEntities is Pausable, AccessControl {
 	mapping(address => OwnershipVeriferData) public ownershipVerifierData;
 	mapping(address => GuarantorData) public guarantorData;
 
-	mapping(address => uint[]) public ownershipVerificationRequests; // verifer => propertyIds
-	mapping(address => uint[]) public guaranteeRequests; // guarantor => propertyIds
+	struct PropertyOwnershipVerificationRequest {
+		address propertyOwner;
+		uint propertyId;
+		address requestedVerifier;
+	}
+	struct PropertyGuaranteeRequest {
+		address propertyOwner;
+		uint propertyId;
+		address requestedGuarantor;
+	}
+
+	mapping(address => PropertyOwnershipVerificationRequest[])
+		public ownershipVerificationRequestsByVerifier;
+	mapping(address => PropertyGuaranteeRequest[])
+		public guaranteeRequestsByGuarantor;
+
+	// mapping(address => mapping(address => uint[])) public ownershipVerificationRequests; // verifer[propertyOwner] => propertyIds
+	// mapping(address => mapping(address => uint[])) public guaranteeRequests; // guarantor[propertyOwner] => propertyIds
 
 	event OwnershipVerifierDataAdded(
 		address indexed verifierAddress,
@@ -79,24 +95,38 @@ contract LinkRealVerifiedEntities is Pausable, AccessControl {
 	 * @dev This requesting ownership verification can be done via this function or off-chain logic
 	 */
 	function requestOwnershipVerification(
+		address propertyOwner,
 		uint propertyId,
 		address requestedVerifier
 	) public {
 		require(isOwnershipVerifier(requestedVerifier), "Invalid verifier");
 		// save ownership verification request
-		ownershipVerificationRequests[requestedVerifier].push(propertyId);
+		ownershipVerificationRequestsByVerifier[requestedVerifier].push(
+			PropertyOwnershipVerificationRequest(
+				propertyOwner,
+				propertyId,
+				requestedVerifier
+			)
+		);
 	}
 
 	/**
 	 * @dev This requesting guarantee can be done via this function or off-chain logic
 	 */
 	function requestGuarantee(
+		address propertyOwner,
 		uint propertyId,
 		address requestedGuarantor
 	) public {
 		require(isGuarantor(requestedGuarantor), "Invalid guarantor");
 		// save guarantee request
-		guaranteeRequests[requestedGuarantor].push(propertyId);
+		guaranteeRequestsByGuarantor[requestedGuarantor].push(
+			PropertyGuaranteeRequest(
+				propertyOwner,
+				propertyId,
+				requestedGuarantor
+			)
+		);
 	}
 
 	function setOwnershipVerifierData(

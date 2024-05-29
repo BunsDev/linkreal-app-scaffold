@@ -39,7 +39,7 @@ contract RealEstateTokenRegistry is
 	 */
 	struct PropertyData {
 		address propertyOwner;
-		uint propertyId;
+		uint propertyId; // this propertyId is not unique across all properties. Unique only for a propertyOwner
 		string propertyAddress;
 		uint propertyListValue; // should get updated daily
 		uint propertyValueAppraisal; // should get updated daily
@@ -59,10 +59,10 @@ contract RealEstateTokenRegistry is
 		string description;
 	}
 
-	// mapi public currentPropertyIdCount = 0; // 
+	// mapi public currentPropertyIdCount = 0; //
 	mapping(address => uint) public currentPropertyIdCount; // Include the unlisted properties as well
 
-	mapping(address => mapping(uint => PropertyData)) public propertyData; // propertyOwner[propertyId] => PropertyData
+	mapping(address => mapping(uint => PropertyData)) private _propertyData; // propertyOwner[propertyId] => PropertyData
 
 	// TODO: remove reduntant data storage onchain and fetch via offchain DS
 	mapping(address => PropertyData[]) private _propertyDataByOwner; // propertyOwner => PropertyData[]
@@ -77,6 +77,14 @@ contract RealEstateTokenRegistry is
 		_grantRole(PAUSER_ROLE, pauser);
 		_grantRole(MINTER_ROLE, minter);
 		easContractInstance = IEAS(easContractAddress);
+	}
+
+	function propertyData(
+		address propertyOwner,
+		uint propertyId
+	) public view returns (PropertyData memory) {
+		PropertyData memory p = _propertyData[propertyOwner][propertyId];
+		return p;
 	}
 
 	function propertyDataByOwner(
@@ -106,7 +114,7 @@ contract RealEstateTokenRegistry is
 		string memory description
 	) public {
 		uint propertyId = currentPropertyIdCount[propertyOwner] + 1; // Property IDs start from 1
-		PropertyData memory _propertyData = PropertyData({
+		PropertyData memory _propertyDataMemory = PropertyData({
 			propertyOwner: propertyOwner,
 			propertyId: propertyId,
 			propertyAddress: propertyAddress,
@@ -124,9 +132,9 @@ contract RealEstateTokenRegistry is
 				description: description
 			})
 		});
-		propertyData[propertyOwner][propertyId] = _propertyData;
+		_propertyData[propertyOwner][propertyId] = _propertyDataMemory;
 		currentPropertyIdCount[propertyOwner] = propertyId;
-		_propertyDataByOwner[propertyOwner].push(_propertyData);
+		_propertyDataByOwner[propertyOwner].push(_propertyDataMemory);
 	}
 
 	/**
@@ -144,7 +152,7 @@ contract RealEstateTokenRegistry is
 		address guarantorAddress = msg.sender;
 		bool isGuarantor = hasRole(GUARANTOR_ROLE, guarantorAddress);
 		uint collateralAmount = msg.value;
-		uint requiredCollateralAmount = propertyData[propertyOwnerAddress][
+		uint requiredCollateralAmount = _propertyData[propertyOwnerAddress][
 			propertyId
 		].propertyValueAppraisal; // apprased value is used in here, instead of current value ( value of tokens )
 		if (collateralAmount <= requiredCollateralAmount && !isGuarantor) {
@@ -159,11 +167,12 @@ contract RealEstateTokenRegistry is
 			if (!isValidAttestation) {
 				revert LinkReal__InvalidGuarantorAttestation();
 			}
-			propertyData[propertyOwnerAddress][propertyId].propertyGuarantor = guarantorAddress;
-			propertyData[propertyOwnerAddress][propertyId]
+			_propertyData[propertyOwnerAddress][propertyId]
+				.propertyGuarantor = guarantorAddress;
+			_propertyData[propertyOwnerAddress][propertyId]
 				.propertyGuarantorAttestationUID = attestationUID;
 		} else if (collateralAmount >= requiredCollateralAmount) {
-			propertyData[propertyOwnerAddress][propertyId]
+			_propertyData[propertyOwnerAddress][propertyId]
 				.propertyCollateralAmount = collateralAmount;
 		}
 	}
@@ -186,9 +195,9 @@ contract RealEstateTokenRegistry is
 		if (!isValidAttestation) {
 			revert LinkReal__InvalidOwnershipVerifierAttestation();
 		}
-		propertyData[propertyOwnerAddress][propertyId]
+		_propertyData[propertyOwnerAddress][propertyId]
 			.propertyOwnershipVerifier = ownershipVerifierAddress;
-		propertyData[propertyOwnerAddress][propertyId]
+		_propertyData[propertyOwnerAddress][propertyId]
 			.propertyOwnerShipVerifierAttestationUID = attestationUID;
 	}
 
@@ -200,7 +209,8 @@ contract RealEstateTokenRegistry is
 		uint propertyId,
 		uint newValue
 	) public onlyRole(ASSET_APPRAISAL_UPDATER_ROLE) {
-		propertyData[propertyOwnerAddress][propertyId].propertyValueAppraisal = newValue;
+		_propertyData[propertyOwnerAddress][propertyId]
+			.propertyValueAppraisal = newValue;
 	}
 
 	function issueRWA(
@@ -208,7 +218,7 @@ contract RealEstateTokenRegistry is
 		uint256 propertyId,
 		uint256 assetShares,
 		bytes memory data
-	) public onlyRole(MINTER_ROLE) {
+	) public {
 		_validateIssuance(propertyOwnerAddress, propertyId);
 		_mint(propertyOwnerAddress, propertyId, assetShares, data);
 	}
@@ -218,15 +228,20 @@ contract RealEstateTokenRegistry is
 		uint256[] memory propertyIds,
 		uint256[] memory assetShareAmounts,
 		bytes memory data
-	) public onlyRole(MINTER_ROLE) {
+	) public {
 		for (uint i = 0; i < propertyIds.length; i++) {
-			_validateIssuance(propertyOwnerAddress,propertyIds[i]);
+			_validateIssuance(propertyOwnerAddress, propertyIds[i]);
 		}
 		_mintBatch(propertyOwnerAddress, propertyIds, assetShareAmounts, data);
 	}
 
-	function _validateIssuance(address propertyOwnerAddress,uint propertyId) internal view {
-		PropertyData memory property = propertyData[propertyOwnerAddress][propertyId];
+	function _validateIssuance(
+		address propertyOwnerAddress,
+		uint propertyId
+	) internal view {
+		PropertyData memory property = _propertyData[propertyOwnerAddress][
+			propertyId
+		];
 		uint collateralAmount = property.propertyCollateralAmount;
 		uint requiredCollateralAmount = property.propertyValueAppraisal;
 

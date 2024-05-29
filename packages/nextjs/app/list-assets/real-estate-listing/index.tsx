@@ -1,16 +1,26 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import clsx from "clsx";
 import { useAccount, useWriteContract } from "wagmi";
+import PropertyCard from "~~/components/PropertyCard";
+import PropertyReviewCard from "~~/components/PropertyReviewCard";
 import deployedContracts from "~~/contracts/deployedContracts";
 import { useScaffoldReadContract, useScaffoldWriteContract, useTransactor } from "~~/hooks/scaffold-eth";
 import { HOST, chainId } from "~~/settings/config";
-import PropertyCard from "~~/components/PropertyCard";
 
-const ListingForm = () => {
+const ListingForm = ({ property, createQueryString }: any) => {
   const { address: connectedWalletAddress } = useAccount();
 
   const { writeContractAsync, isPending } = useWriteContract();
   const writeTx = useTransactor();
+
+  const { data: currentPropertyId } = useScaffoldReadContract({
+    contractName: "RealEstateTokenRegistry",
+    functionName: "currentPropertyIdCount",
+    args: [connectedWalletAddress],
+  });
+
+  console.log("crrentPropertyId", currentPropertyId);
 
   const initialFormData = {
     owner: "",
@@ -21,6 +31,25 @@ const ListingForm = () => {
     description: "",
   };
   const [formData, setFormData] = useState(initialFormData);
+
+  const router = useRouter();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    console.log("property formdata", property);
+    if (property !== null) {
+      setFormData({
+        owner: property.propertyOwner || "",
+        address: property.propertyAddress || "",
+        price: property.propertyListValue.toString() || "",
+        fractions: property.propertyFractionsCount.toString() || "",
+        photo: property.metadata.propertyImageURL || "",
+        description: property.metadata.description || "",
+      });
+    }
+  }, [property]);
+
+  console.log("formDAta", formData);
 
   const { owner, address, price, fractions, photo, description } = formData;
 
@@ -36,22 +65,21 @@ const ListingForm = () => {
     e.preventDefault();
     setSubmitting(true);
     try {
+      if (currentPropertyId === undefined) throw new Error("Failed to fetch current property id");
+      const propertyId = currentPropertyId + 1n;
       const writeContractAsyncWithParams = () =>
         writeContractAsync({
           address: deployedContracts[chainId].RealEstateTokenRegistry.address,
           abi: deployedContracts[chainId].RealEstateTokenRegistry.abi,
           functionName: "submitUnlistedProperty",
-          args: [
-            formData.owner,
-            formData.address,
-            BigInt(formData.price),
-            BigInt(formData.fractions),
-            formData.photo,
-            formData.description,
-          ],
+          args: [owner, address, BigInt(price), BigInt(fractions), photo, description],
         });
 
       await writeTx(writeContractAsyncWithParams, { blockConfirmations: 1 });
+      const propertyIdQuery = createQueryString("propertyId", propertyId);
+      const propertyOwnerQuery = createQueryString("propertyOwner", owner);
+
+      router.push(pathname + "?" + propertyIdQuery + "&" + propertyOwnerQuery);
 
       alert("Form data saved successfully");
     } catch (error) {
@@ -146,7 +174,7 @@ const ListingForm = () => {
           />
         </div>
         <div className="flex justify-center">
-          <button type="submit" className="btn btn-outline">
+          <button type="submit" className="btn btn-outline" disabled={property !== null}>
             {submitting ? "Submitting..." : "Submit"}
           </button>
         </div>
@@ -159,6 +187,10 @@ const RequestOwnershipVerifications = () => {
   const { address: connectedWalletAddress } = useAccount();
   const [verifiers, setVerifiers] = useState<any>([]);
   const [selectedVerifier, setSelectedVerifier] = useState("");
+  const searchParams = useSearchParams();
+
+  const propertyId = searchParams.get("propertyId");
+  const propertyOwner = searchParams.get("propertyOwner");
 
   const { data: ownershipVerifierStructs } = useScaffoldReadContract({
     contractName: "LinkRealVerifiedEntities",
@@ -181,17 +213,26 @@ const RequestOwnershipVerifications = () => {
   };
 
   const handleSubmit = async (e: any) => {
-    e.preventDefault();
-    console.log("Selected Verifier:", selectedVerifier);
+    try {
+      e.preventDefault();
+      console.log("Selected Verifier:", selectedVerifier);
 
-    // TODO: call backend to add the selected verifier for the property
-    // await writeContractAsync({
-    //   {
-    //     functionName: "requestOwnershipVerification",
+      await writeContractAsync({
+        functionName: "requestOwnershipVerification",
+        args: [
+          propertyOwner ? propertyOwner : undefined,
+          propertyId ? BigInt(propertyId) : undefined,
+          selectedVerifier,
+        ],
+      });
 
-    //   }
-    // });
-    // Call your backend to add the selected verifier to the property. Verifier should get notified from the backend.
+      alert("Request sent successfully");
+    } catch (error) {
+      console.error("An error occurred while sending request:", error);
+      alert("An error occurred while sending request");
+    }
+
+    // TODO: Call your backend to add the selected verifier to the property. Verifier should get notified from the backend.
   };
 
   return (
@@ -222,12 +263,24 @@ const RequestOwnershipVerifications = () => {
 const RequestGurantees = () => {
   const [gurantors, setGurantors] = useState<any>([]);
   const [selectedGurantor, setSelectedGurantor] = useState("");
-  const [submitting, setSubmitting] = useState(false);
   const account = useAccount();
+  const searchParams = useSearchParams();
+
+  const propertyId = searchParams.get("propertyId");
+  const propertyOwner = searchParams.get("propertyOwner");
+
+  const { data: guarantorStructs } = useScaffoldReadContract({
+    contractName: "LinkRealVerifiedEntities",
+    functionName: "returnGuarantorStructs",
+  });
+
+  const { writeContractAsync, isPending } = useScaffoldWriteContract("LinkRealVerifiedEntities");
 
   useEffect(() => {
-    // TODO: Fetch pre-vetted guarntors via a smart contract external view function. hardcoded for now
-    setGurantors(["Asset Holder Capital", "Some Gurantor Company", "Gurantor C"]);
+    // setGurantors(["Asset Holder Capital", "Some Gurantor Company", "Gurantor C"]);
+    console.log("Guarantor structs", guarantorStructs);
+    const guarantorNames = guarantorStructs ? guarantorStructs.map((guarantor: any) => guarantor.guarantorName) : [];
+    guarantorNames.length && setGurantors(guarantorNames);
   }, []);
 
   const handleGurantorChange = (e: any) => {
@@ -235,15 +288,25 @@ const RequestGurantees = () => {
   };
 
   const handleSubmit = async (e: any) => {
-    e.preventDefault();
-    setSubmitting(true);
-    console.log({ selectedGurantor });
+    try {
+      e.preventDefault();
+      // setSubmitting(true);
+      console.log({ selectedGurantor });
 
-    // TODO: call backend to add the selected gurantor for the property
-    setTimeout(() => {
-      setSubmitting(false);
-    }, 1000);
-    // Call your backend to add the selected verifier to the property. Verifier should get notified from the backend.
+      await writeContractAsync({
+        functionName: "requestGuarantee",
+        args: [
+          propertyOwner ? propertyOwner : undefined,
+          propertyId ? BigInt(propertyId) : undefined,
+          selectedGurantor,
+        ],
+      });
+
+      alert("Request sent successfully");
+    } catch (error) {
+      console.error("An error occurred while sending request:", error);
+      alert("An error occurred while sending request");
+    }
   };
 
   return (
@@ -268,7 +331,7 @@ const RequestGurantees = () => {
             ))}
           </select>
           <button type="submit" className="ml-5 btn-link">
-            {submitting ? "Requesting" : "Request"}
+            {isPending ? "Requesting" : "Request"}
           </button>
         </div>
       </form>
@@ -319,53 +382,43 @@ const SignTOS = () => {
   );
 };
 
-const ReviewAndList = () => {
-  const formData: any = {}; // fetch from the backend
-  const { address, price, fractions, description, photo } = formData;
+const ReviewAndList = ({ property }: any) => {
+  const { writeContractAsync, isPending } = useScaffoldWriteContract("RealEstateTokenRegistry");
+  const searchParams = useSearchParams();
+  const propertyId = searchParams.get("propertyId");
+  const propertyOwner = searchParams.get("propertyOwner");
+  console.log("propertyId", propertyId);
+
+  const { data: fetchedProperty, isLoading: isLoadingProperty } = useScaffoldReadContract({
+    contractName: "RealEstateTokenRegistry",
+    functionName: "propertyData",
+    args: [propertyOwner ? propertyOwner : undefined, propertyId ? BigInt(propertyId) : undefined],
+  });
 
   const handleConfirm = async () => {
-    // TODO: Call issueRWA function in the smart contract from the connected wallet.
+    if (!fetchedProperty || isLoadingProperty) return;
+    await writeContractAsync({
+      functionName: "issueRWA",
+      // @ts-ignore
+      args: [fetchedProperty.propertyOwner, fetchedProperty.propertyId, fetchedProperty.propertyFractionsCount, "0x0"],
+    });
   };
 
   return (
-    <div className="max-w-md mx-auto">
-      <h2 className="font-bold mb-4">Review Your Listing</h2>
-      <div className="mb-4">
-        <strong>Address:</strong> {address}
-      </div>
-      <div className="mb-4">
-        {/* // this is a value user enters */}
-        <strong>Total Value of the property (USD):</strong> {price}
-      </div>
-      <div className="mb-4">
-        <strong>Fractions Count:</strong> {fractions}
-      </div>
-      <div className="mb-4">
-        <strong>Description:</strong> {description}
-      </div>
-      <div className="mb-4">
-        <strong>Photo:</strong> {photo}
-      </div>
-      <div className="mb-4">
-        <strong>Ownership Verifier:</strong> Land Registry of Asgard
-      </div>
-      <div className="mb-4">
-        <strong>Gurantor:</strong> Asset Holder Capital
-      </div>
-      <div className="mb-4">
-        <strong>Collataral:</strong> Not Provided
-      </div>
-      <div className="mb-4">
-        <strong>Terms of Service:</strong> Accepted
-      </div>
-      <button className="btn btn-primary mt-5" onClick={handleConfirm}>
-        Confirm and List
-      </button>
+    <div className="max-w-3xl mx-auto">
+      {!isLoadingProperty && fetchedProperty ? (
+        <>
+          <h2 className="font-bold mb-4">Review Your Listing</h2>
+          <PropertyReviewCard property={fetchedProperty} handleConfirm={handleConfirm} />
+        </>
+      ) : (
+        <p>Loading...</p>
+      )}
     </div>
   );
 };
 
-const IndividualAssetListing = () => {
+const IndividualAssetListing = ({ property }: any | null) => {
   const steps = [
     { number: 1, title: "Listing Form" },
     { number: 2, title: "Request ownership Verfications" },
@@ -374,6 +427,26 @@ const IndividualAssetListing = () => {
     { number: 5, title: "Review and List" },
   ];
   const [step, setStep] = useState(1);
+
+  const searchParams = useSearchParams();
+
+  const createQueryString = useCallback(
+    (name: string, value: string) => {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set(name, value);
+
+      return params.toString();
+    },
+    [searchParams],
+  );
+
+  // useEffect(() => {
+  //   console.log("property", property);
+  //   if (property) {
+  //     createQueryString("propertyId", property.propertyId);
+  //     createQueryString("propertyOwner", property.propertyOwner);
+  //   }
+  // }, []);
 
   const handleStepChange = (clickedStep: number) => {
     if (clickedStep >= 4) {
@@ -391,26 +464,33 @@ const IndividualAssetListing = () => {
     <div className="flex flex-col">
       <ul className="steps mb-10">
         {steps.map(({ number, title }) => (
-          <li className={clsx("step", { "step-primary": step === number })} onClick={() => handleStepChange(number)}>
+          <li
+            className={clsx("step", { "step-primary": step === number })}
+            onClick={() => handleStepChange(number)}
+            key={number}
+          >
             {title}
           </li>
         ))}
       </ul>
-      {step === 1 && <ListingForm />}
+      {step === 1 && <ListingForm property={property} createQueryString={createQueryString} />}
       {step === 2 && <RequestOwnershipVerifications />}
       {step === 3 && <RequestGurantees />}
       {step === 4 && <SignTOS />}
-      {step === 5 && <ReviewAndList />}
+      {step === 5 && <ReviewAndList property={property} />}
     </div>
   );
 };
 
 const RealEstateListing = () => {
   const [isListing, setIsListing] = useState(false);
-  const [propertyId, setPropertyId] = useState("");
+  const [property, setProperty] = useState<any | null>(null);
   const [propertyOwnerWallet, setPropertyOwnerWallet] = useState("");
   const { address: connectedWalletAddress } = useAccount();
-  const { data, isLoading } = useScaffoldReadContract({
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const { data: propertyData, isLoading } = useScaffoldReadContract({
     contractName: "RealEstateTokenRegistry",
     functionName: "propertyDataByOwner",
     args: [propertyOwnerWallet ? propertyOwnerWallet : connectedWalletAddress],
@@ -418,20 +498,21 @@ const RealEstateListing = () => {
 
   return (
     <>
-      {isListing ? (
-        <IndividualAssetListing />
+      {isListing || property !== null ? (
+        <IndividualAssetListing property={property} />
       ) : (
-        <div className="max-w-3xl mx-auto mt-10 flex-col items-center">
+        <div className="max-w-3xl mx-auto mt-10 flex flex-col items-center">
           <h1 className="text-2xl font-bold mb-6">Real Estate Listings</h1>
           <button
-            className="btn btn-outline btn-xs ml-10"
+            className="btn btn-outline btn-xs"
             onClick={() => {
+              router.push(pathname);
               setIsListing(prevIsListing => !prevIsListing);
             }}
           >
             {"Create a new Listing"}
           </button>
-          <div className="mt-5">
+          <div className="mt-5 w-full flex flex-col items-center">
             <input
               type="text"
               placeholder="Enter Property Owner Wallet"
@@ -439,14 +520,14 @@ const RealEstateListing = () => {
               onChange={e => setPropertyOwnerWallet(e.target.value)}
               value={propertyOwnerWallet ? propertyOwnerWallet : connectedWalletAddress}
             />
-            <ul className="mt-10">
+            <ul className="mt-10 w-full flex flex-col items-center">
               {isLoading ? (
                 <li>Loading...</li>
-              ) : data && data.length ? (
-                data.map((property: any, index: number) => (
-                  <li key={index}>
-                    <PropertyCard property={property} />
-                  </li>
+              ) : propertyData && propertyData.length ? (
+                propertyData.map((property: any, index: number) => (
+                  <div key={index} className="w-full flex justify-center">
+                    <PropertyCard property={property} setProperty={setProperty} />
+                  </div>
                 ))
               ) : (
                 <li>No Listings found</li>

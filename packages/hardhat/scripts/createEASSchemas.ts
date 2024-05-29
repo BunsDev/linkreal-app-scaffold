@@ -2,8 +2,8 @@ import { SchemaRegistry } from "@ethereum-attestation-service/eas-sdk";
 import * as hre from "hardhat";
 
 const schemaRegistryContractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
-const ownershipVerifierResolverAddress = "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82";
-const guarantorResolverAddress = "0x9A676e781A523b5d0C0e43731313A708CB607508";
+const ownershipVerifierResolverAddress = "0x5FC8d32690cc91D4c39d9d3abcBD16989F875707";
+const guarantorResolverAddress = "0x0165878A594ca255338adfa4d48449f69242Eb8F";
 
 async function main() {
   const [signer0] = await hre.ethers.getSigners();
