@@ -18,10 +18,12 @@ contract AssetValueUpdater is Pausable, AccessControl {
 
 	function updateAssetValueAppraisal(
 		address realEstateTokenRegistry,
+		address propertyOwner,
 		uint propertyId
 	) public {
 		uint newValue = 100; // TODO: fetch from zestimates via chainlink functions
 		RealEstateTokenRegistry(realEstateTokenRegistry).updateAssetAppraisal(
+			propertyOwner,
 			propertyId,
 			newValue
 		);
