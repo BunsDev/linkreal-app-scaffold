@@ -406,12 +406,13 @@ const SignTOS = () => {
   );
 };
 
-const ReviewAndList = ({ property }: any) => {
+const ReviewAndList = () => {
+  const [isListing, setIsListing] = useState(true);
   const { writeContractAsync, isPending } = useScaffoldWriteContract("RealEstateTokenRegistry");
   const searchParams = useSearchParams();
   const propertyId = searchParams.get("propertyId");
   const propertyOwner = searchParams.get("propertyOwner");
-  console.log("propertyId", propertyId);
+  console.log("propertyId", propertyId, isListing);
 
   const { data: fetchedProperty, isLoading: isLoadingProperty } = useScaffoldReadContract({
     contractName: "RealEstateTokenRegistry",
@@ -420,12 +421,25 @@ const ReviewAndList = ({ property }: any) => {
   });
 
   const handleConfirm = async () => {
+    console.log({ isListing });
     if (!fetchedProperty || isLoadingProperty) return;
     await writeContractAsync({
       functionName: "issueRWA",
       // @ts-ignore
-      args: [fetchedProperty.propertyOwner, fetchedProperty.propertyId, fetchedProperty.propertyFractionsCount, "0x0"],
+      args: [
+        fetchedProperty.propertyOwner,
+        fetchedProperty.propertyId,
+        fetchedProperty.propertyFractionsCount,
+        isListing,
+        "0x0",
+      ],
     });
+    if (isListing) {
+      await writeContractAsync({
+        functionName: "setApprovalForAll",
+        args: [deployedContracts[chainId].RealEstateTokenPurchaser.address, true],
+      });
+    }
   };
 
   return (
@@ -433,7 +447,12 @@ const ReviewAndList = ({ property }: any) => {
       {!isLoadingProperty && fetchedProperty ? (
         <>
           <h2 className="font-bold mb-4">Review Your Listing</h2>
-          <PropertyReviewCard property={fetchedProperty} handleConfirm={handleConfirm} />
+          <PropertyReviewCard
+            property={fetchedProperty}
+            handleConfirm={handleConfirm}
+            setIsListing={setIsListing}
+            isListing={isListing}
+          />
         </>
       ) : (
         <p>Loading...</p>
@@ -503,7 +522,7 @@ const IndividualAssetListing = ({ property }: any | null) => {
       {step === 2 && <RequestOwnershipVerifications />}
       {step === 3 && <RequestGurantees />}
       {step === 4 && <SignTOS />}
-      {step === 5 && <ReviewAndList property={property} />}
+      {step === 5 && <ReviewAndList />}
     </div>
   );
 };

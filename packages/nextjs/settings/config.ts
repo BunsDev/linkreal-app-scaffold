@@ -1,3 +1,5 @@
+import deployedContracts from "~~/contracts/deployedContracts";
+
 export const HOST = "http://localhost:3000";
 
 export const chainId = 31337;
@@ -5,7 +7,7 @@ export const chainId = 31337;
 export const EASConfig = {
   31337: {
     contracts: {
-      EAS: "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512",
+      EAS: deployedContracts[chainId].EAS.address,
       SchemaRegistry: "",
     },
     schemaUIDs: {
@@ -15,3 +17,5 @@ export const EASConfig = {
     },
   },
 };
+
+export const TokenPurchaserContractAddress = ""

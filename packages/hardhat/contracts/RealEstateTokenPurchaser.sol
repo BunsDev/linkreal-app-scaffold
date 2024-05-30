@@ -8,7 +8,7 @@ import "./RealEstateTokenRegistry.sol";
  * This is a simple  contract for purchasing LinkReal platform tokenized real estate assets.
  * Buyers can purchase either partial or full ownership of the Properties listed form RealEstateTokenRegistry contract.
  */
-contract RealEstateTokenMarketplace {
+contract RealEstateTokenPurchaser {
 	RealEstateTokenRegistry public realEstateTokenRegistry;
 
 	event TokensSold(

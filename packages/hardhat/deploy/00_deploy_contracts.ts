@@ -34,7 +34,7 @@ const deployLinkRealContracts: DeployFunction = async function (hre: HardhatRunt
     autoMine: true,
   });
 
-  await deploy("RealEstateTokenRegistry", {
+  const realEstateTokenRegistryDepl = await deploy("RealEstateTokenRegistry", {
     from: deployer,
     // Contract constructor arguments
     args: [deployer, deployer, deployer, eas.address],
@@ -69,6 +69,13 @@ const deployLinkRealContracts: DeployFunction = async function (hre: HardhatRunt
   await deploy("GuarantorAttestationResolver", {
     from: deployer,
     args: [eas.address],
+    log: true,
+    autoMine: true,
+  });
+
+  await deploy("RealEstateTokenPurchaser", {
+    from: deployer,
+    args: [realEstateTokenRegistryDepl.address],
     log: true,
     autoMine: true,
   });

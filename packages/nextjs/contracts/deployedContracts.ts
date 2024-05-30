@@ -7,7 +7,7 @@ import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 const deployedContracts = {
   31337: {
     AssetValueUpdater: {
-      address: "0x68B1D87F95878fE05B998F19b66F4baba5De1aed",
+      address: "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
       abi: [
         {
           inputs: [
@@ -2004,7 +2004,7 @@ const deployedContracts = {
       },
     },
     LinkRealVerifiedEntities: {
-      address: "0xa82fF9aFd8f496c3d6ac40E2a0F282E47488CFc9",
+      address: "0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9",
       abi: [
         {
           inputs: [
@@ -3287,8 +3287,92 @@ const deployedContracts = {
           "@ethereum-attestation-service/eas-contracts/contracts/resolver/SchemaResolver.sol",
       },
     },
+    RealEstateTokenPurchaser: {
+      address: "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
+      abi: [
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "_realEstateTokenRegistry",
+              type: "address",
+            },
+          ],
+          stateMutability: "nonpayable",
+          type: "constructor",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "address",
+              name: "buyer",
+              type: "address",
+            },
+            {
+              indexed: true,
+              internalType: "address",
+              name: "seller",
+              type: "address",
+            },
+            {
+              indexed: true,
+              internalType: "uint256",
+              name: "propertyId",
+              type: "uint256",
+            },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "fractionsCount",
+              type: "uint256",
+            },
+          ],
+          name: "TokensSold",
+          type: "event",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "propertyOwner",
+              type: "address",
+            },
+            {
+              internalType: "uint256",
+              name: "propertyId",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "fractionsCount",
+              type: "uint256",
+            },
+          ],
+          name: "purchasePropertyFraction",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "realEstateTokenRegistry",
+          outputs: [
+            {
+              internalType: "contract RealEstateTokenRegistry",
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+      ],
+      inheritedFunctions: {},
+    },
     RealEstateTokenRegistry: {
-      address: "0x9A9f2CCfdE556A7E9Ff0848998Aa4a0CFD8863AE",
+      address: "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
       abi: [
         {
           inputs: [
@@ -4027,6 +4111,11 @@ const deployedContracts = {
               type: "uint256",
             },
             {
+              internalType: "bool",
+              name: "isListed",
+              type: "bool",
+            },
+            {
               internalType: "bytes",
               name: "data",
               type: "bytes",
@@ -4053,6 +4142,11 @@ const deployedContracts = {
               internalType: "uint256[]",
               name: "assetShareAmounts",
               type: "uint256[]",
+            },
+            {
+              internalType: "bool[]",
+              name: "isListeds",
+              type: "bool[]",
             },
             {
               internalType: "bytes",
@@ -4180,6 +4274,11 @@ const deployedContracts = {
                   name: "metadata",
                   type: "tuple",
                 },
+                {
+                  internalType: "bool",
+                  name: "isListed",
+                  type: "bool",
+                },
               ],
               internalType: "struct RealEstateTokenRegistry.PropertyData",
               name: "",
@@ -4278,6 +4377,11 @@ const deployedContracts = {
                     "struct RealEstateTokenRegistry.propertyMetadata",
                   name: "metadata",
                   type: "tuple",
+                },
+                {
+                  internalType: "bool",
+                  name: "isListed",
+                  type: "bool",
                 },
               ],
               internalType: "struct RealEstateTokenRegistry.PropertyData[]",

@@ -1,7 +1,7 @@
 import React from "react";
 
 // TODO: add types
-const PropertyReviewCard = ({ property, handleConfirm }: any) => {
+const PropertyReviewCard = ({ property, handleConfirm, setIsListing, isListing }: any) => {
   return (
     <div className="card card-side bg-base-100 shadow-xl">
       <figure className="w-64 h-64 overflow-hidden mt-5">
@@ -40,6 +40,17 @@ const PropertyReviewCard = ({ property, handleConfirm }: any) => {
           <strong>Photo:</strong> {property.metadata.propertyImageURL ? property.metadata.propertyImageURL : "Not set"}
           <br />
           <strong>Description:</strong> {property.metadata.description}{" "}
+        </div>
+        <div className="mb-5">
+          <label className="flex">
+            <input
+              type="checkbox"
+              defaultChecked
+              className="mr-2"
+              onChange={() => setIsListing(!isListing)}
+            />
+            <span className="label-text">Make Listing Public</span>
+          </label>
         </div>
         <div className="card-actions justify-end">
           <button className="btn btn-primary" onClick={() => handleConfirm()}>

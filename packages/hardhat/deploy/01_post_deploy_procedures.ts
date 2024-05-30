@@ -41,7 +41,7 @@ const postDeploy = async (hre: HardhatRuntimeEnvironment) => {
   await realEstateTokenRegistry.grantRole(GUARANTOR_ROLE, deployer);
   await realEstateTokenRegistry.grantRole(ASSET_APPRAISAL_UPDATER_ROLE, assetValueUpdaterDepl.address);
 
-  log(`postDeploy for ${deployer}`);
+  log(`postDeploy procedure is completed!`);
 };
 
 export default postDeploy;
