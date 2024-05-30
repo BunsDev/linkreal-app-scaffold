@@ -78,4 +78,4 @@ export default deployLinkRealContracts;
 
 // Tags are useful if you have multiple deploy files and only want to run one of them.
 // e.g. yarn deploy --tags RWAToken
-deployLinkRealContracts.tags = ["all"];
+deployLinkRealContracts.tags = ["deploy_all"];
