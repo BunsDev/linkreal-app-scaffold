@@ -3,93 +3,74 @@
 import { useEffect, useState } from "react";
 import { NextPage } from "next";
 import { useAccount } from "wagmi";
+import { useEthersSigner } from "~~/hooks/easWagmiHooks";
+import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
+import { attestToPropertyOwnership } from "~~/utils/attestations";
 
 const VerifyOwnership: NextPage = () => {
   // TODO: add types to verificationRequests
   const [verificationRequests, setVerificationRequests] = useState<any>([]);
   const [isVerifier, setIsVerifier] = useState<boolean>(false);
   const { address: connectedWalletAddress } = useAccount();
+  const easSigner = useEthersSigner();
 
-  const fetchRequests = async () => {
-    // Fetch pending verification requests
+  const { data: verificationRequestData, isLoading } = useScaffoldReadContract({
+    contractName: "LinkRealVerifiedEntities",
+    functionName: "ownershipVerificationRequestsByVerifier",
+    args: [connectedWalletAddress],
+  });
 
-    // TODO: api call to fetch pending verification requests
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
+  const { data: isOwnershipVerifier } = useScaffoldReadContract({
+    contractName: "LinkRealVerifiedEntities",
+    functionName: "isOwnershipVerifier",
+    args: [connectedWalletAddress],
+  });
 
-    // Dummy data for verification requests
-    const dummyData = [
-      {
-        id: 1,
-        address: "Dummy Address 1",
-        total_value: 1000,
-        fractions_count: 10,
-        description: "Dummy Description 1",
-      },
-      {
-        id: 2,
-        address: "Dummy Address 2",
-        total_value: 2000,
-        fractions_count: 20,
-        description: "Dummy Description 2",
-      },
-      // Add more dummy data as needed
-    ];
-
-    setVerificationRequests(dummyData);
-  };
+  const { writeContractAsync: writeContractAsyncLRVE } = useScaffoldWriteContract("LinkRealVerifiedEntities");
+  const { writeContractAsync: writeContractAsyncRETR } = useScaffoldWriteContract("RealEstateTokenRegistry");
 
   useEffect(() => {
-    fetchRequests();
-  }, []);
-
-  const checkVerifier = async () => {
-    // TODO:
-    // 1. call smart contract function to check if the connected wallet address is a verifier
-    // 2. set setIsVerifier based on the result
-    // TODO: Also update the db to reflect that the property has been verified
-
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    // Dummy data for verifier check
-    const isVerifier = true;
-
-    setIsVerifier(isVerifier);
-  };
+    console.log({ data: verificationRequestData });
+    const pendingApprovalRequests = verificationRequestData?.filter((request: any) => request.isApproved === false);
+    setVerificationRequests(pendingApprovalRequests);
+  }, [verificationRequestData]);
 
   useEffect(() => {
-    checkVerifier();
-  }, [connectedWalletAddress]);
+    setIsVerifier(Boolean(isOwnershipVerifier));
+  }, [connectedWalletAddress, isOwnershipVerifier]);
 
-  const handleVerify = async (requestId: string) => {
+  const handleVerify = async (propertyId: bigint, propertyOwner: string) => {
     setVerificationRequests((prevRequests: any) =>
       prevRequests.map((prevRequest: any) =>
-        prevRequest.id === requestId ? { ...prevRequest, submitting: true } : prevRequest,
+        prevRequest.propertyId === propertyId ? { ...prevRequest, submitting: true } : prevRequest,
       ),
     );
 
     try {
-      // TODO:
-      // 1. Popup metamask and get the signed attestation from the verifier
-      // 2. Save Attestation in the smart contract.
-
-      const simulateTx = await new Promise(resolve => setTimeout(resolve, 1000));
-
-      alert("Verification successful");
+      const attestationUID = await attestToPropertyOwnership(easSigner, Number(propertyId), propertyOwner);
+      await writeContractAsyncRETR({
+        functionName: "provideOwnershipVerification",
+        args: [propertyId, propertyOwner, attestationUID as `0x${string}`],
+      });
+      await writeContractAsyncLRVE({
+        functionName: "approveOwnershipVerificationRequest",
+        args: [propertyOwner, propertyId],
+      });
 
       // Update the list of verification requests
       setVerificationRequests((prevRequests: any) =>
-        prevRequests.filter((prevRequest: any) => prevRequest.id !== requestId),
+        prevRequests.filter((prevRequest: any) => prevRequest.propertyId !== propertyId),
       );
+
+      alert("Verification successful");
     } catch (error) {
       console.error("Error verifying ownership:", error);
-      alert("Verification failed");
       setVerificationRequests((prevRequests: any) =>
         prevRequests.map((prevRequest: any) =>
-          prevRequest.id === requestId ? { ...prevRequest, submitting: false } : prevRequest,
+          prevRequest.propertyId === propertyId ? { ...prevRequest, submitting: false } : prevRequest,
         ),
       );
+      alert("Verification failed");
     }
   };
 
@@ -98,26 +79,23 @@ const VerifyOwnership: NextPage = () => {
       {isVerifier ? (
         <>
           <h1 className="text-2xl font-bold mb-6">Pending Verification Requests</h1>
-          {verificationRequests.length === 0 ? (
+          {verificationRequests.length <= 0 ? (
             <p>No pending verification requests.</p>
           ) : (
             <ul className="space-y-4">
               {verificationRequests.map((request: any) => (
-                <li key={request.id} className="p-4 border rounded-lg shadow-sm">
+                <li key={request.propertyId} className="p-4 border rounded-lg shadow-sm">
                   <p>
-                    <strong>Address:</strong> {request.address}
+                    <strong>Owner:</strong> {request.propertyOwner}
                   </p>
                   <p>
-                    <strong>Total Value:</strong> ${request.total_value}
+                    <strong>Property Id:</strong> {request.propertyId.toString()}
                   </p>
                   <p>
-                    <strong>Fractions Count:</strong> {request.fractions_count}
-                  </p>
-                  <p>
-                    <strong>Description:</strong> {request.description}
+                    <strong>Requested Verifier:</strong> {request.requestedVerifier}
                   </p>
                   <button
-                    onClick={() => handleVerify(request.id)}
+                    onClick={() => handleVerify(request.propertyId, request.propertyOwner)}
                     className="mt-2 btn btn-primary"
                     disabled={request.submitting}
                   >

@@ -7,6 +7,9 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 
 contract LinkRealVerifiedEntities is Pausable, AccessControl {
 	bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
+	bytes32 public constant OWNERSHIP_VERIFIER_ROLE =
+		keccak256("OWNERSHIP_VERIFIER_ROLE");
+	bytes32 public constant GUARANTOR_ROLE = keccak256("GUARANTOR_ROLE");
 
 	struct OwnershipVeriferData {
 		address verifierAddress;
@@ -25,24 +28,26 @@ contract LinkRealVerifiedEntities is Pausable, AccessControl {
 	OwnershipVeriferData[] public ownershipVerifierDataArray; // TODO: remove reduntant data storage onchain and fetch via offchain DS
 	GuarantorData[] public guarantorDataArray; // TODO: remove reduntant data storage onchain and fetch via offchain DS
 
-	mapping(address => OwnershipVeriferData) public ownershipVerifierData;
-	mapping(address => GuarantorData) public guarantorData;
+	mapping(address => OwnershipVeriferData) public ownershipVerifierData; // verifierAddress => OwnershipVeriferData
+	mapping(address => GuarantorData) public guarantorData; // guarantorAddress => GuarantorData
 
 	struct PropertyOwnershipVerificationRequest {
 		address propertyOwner;
 		uint propertyId;
 		address requestedVerifier;
+		bool isApproved;
 	}
 	struct PropertyGuaranteeRequest {
 		address propertyOwner;
 		uint propertyId;
 		address requestedGuarantor;
+		bool isApproved;
 	}
 
 	mapping(address => PropertyOwnershipVerificationRequest[])
-		public ownershipVerificationRequestsByVerifier;
+		private _ownershipVerificationRequestsByVerifier; // verifierAddress => PropertyOwnershipVerificationRequest[]
 	mapping(address => PropertyGuaranteeRequest[])
-		public guaranteeRequestsByGuarantor;
+		private _guaranteeRequestsByGuarantor; // guarantorAddress => PropertyGuaranteeRequest[]
 
 	// mapping(address => mapping(address => uint[])) public ownershipVerificationRequests; // verifer[propertyOwner] => propertyIds
 	// mapping(address => mapping(address => uint[])) public guaranteeRequests; // guarantor[propertyOwner] => propertyIds
@@ -91,6 +96,18 @@ contract LinkRealVerifiedEntities is Pausable, AccessControl {
 		return guarantorDataArray;
 	}
 
+	function ownershipVerificationRequestsByVerifier(
+		address verifierAddress
+	) public view returns (PropertyOwnershipVerificationRequest[] memory) {
+		return _ownershipVerificationRequestsByVerifier[verifierAddress];
+	}
+
+	function guaranteeRequestsByGuarantor(
+		address guarantorAddress
+	) public view returns (PropertyGuaranteeRequest[] memory) {
+		return _guaranteeRequestsByGuarantor[guarantorAddress];
+	}
+
 	/**
 	 * @dev This requesting ownership verification can be done via this function or off-chain logic
 	 */
@@ -101,11 +118,12 @@ contract LinkRealVerifiedEntities is Pausable, AccessControl {
 	) public {
 		require(isOwnershipVerifier(requestedVerifier), "Invalid verifier");
 		// save ownership verification request
-		ownershipVerificationRequestsByVerifier[requestedVerifier].push(
+		_ownershipVerificationRequestsByVerifier[requestedVerifier].push(
 			PropertyOwnershipVerificationRequest(
 				propertyOwner,
 				propertyId,
-				requestedVerifier
+				requestedVerifier,
+				false
 			)
 		);
 	}
@@ -120,13 +138,56 @@ contract LinkRealVerifiedEntities is Pausable, AccessControl {
 	) public {
 		require(isGuarantor(requestedGuarantor), "Invalid guarantor");
 		// save guarantee request
-		guaranteeRequestsByGuarantor[requestedGuarantor].push(
+		_guaranteeRequestsByGuarantor[requestedGuarantor].push(
 			PropertyGuaranteeRequest(
 				propertyOwner,
 				propertyId,
-				requestedGuarantor
+				requestedGuarantor,
+				false
 			)
 		);
+	}
+
+	/**
+	 * @dev This function just used temporaily to get request status to frontend via one function call. Request status should be either stored off chain or fetch from PropertyData onchain
+	 */
+	function approveOwnershipVerificationRequest(
+		address propertyOwner,
+		uint propertyId
+	) public onlyRole(OWNERSHIP_VERIFIER_ROLE) {
+		PropertyOwnershipVerificationRequest[]
+			storage requests = _ownershipVerificationRequestsByVerifier[
+				msg.sender
+			];
+		for (uint i = 0; i < requests.length; i++) {
+			if (
+				requests[i].propertyOwner == propertyOwner &&
+				requests[i].propertyId == propertyId
+			) {
+				requests[i].isApproved = true;
+				break;
+			}
+		}
+	}
+
+	/**
+	 * @dev This function just used temporaily to get request status to frontend via one function call.
+	 */
+	function approveGuaranteeRequest(
+		address propertyOwner,
+		uint propertyId
+	) public onlyRole(GUARANTOR_ROLE) {
+		PropertyGuaranteeRequest[]
+			storage requests = _guaranteeRequestsByGuarantor[msg.sender];
+		for (uint i = 0; i < requests.length; i++) {
+			if (
+				requests[i].propertyOwner == propertyOwner &&
+				requests[i].propertyId == propertyId
+			) {
+				requests[i].isApproved = true;
+				break;
+			}
+		}
 	}
 
 	function setOwnershipVerifierData(

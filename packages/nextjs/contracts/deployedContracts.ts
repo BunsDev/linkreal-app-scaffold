@@ -2004,7 +2004,7 @@ const deployedContracts = {
       },
     },
     LinkRealVerifiedEntities: {
-      address: "0x0DCd1Bf9A1b36cE34237eEaFef220932846BCD82",
+      address: "0xE6E340D132b5f46d1e472DebcD681B2aBc16e57E",
       abi: [
         {
           inputs: [
@@ -2219,6 +2219,32 @@ const deployedContracts = {
         },
         {
           inputs: [],
+          name: "GUARANTOR_ROLE",
+          outputs: [
+            {
+              internalType: "bytes32",
+              name: "",
+              type: "bytes32",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "OWNERSHIP_VERIFIER_ROLE",
+          outputs: [
+            {
+              internalType: "bytes32",
+              name: "",
+              type: "bytes32",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
           name: "PAUSER_ROLE",
           outputs: [
             {
@@ -2228,6 +2254,42 @@ const deployedContracts = {
             },
           ],
           stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "propertyOwner",
+              type: "address",
+            },
+            {
+              internalType: "uint256",
+              name: "propertyId",
+              type: "uint256",
+            },
+          ],
+          name: "approveGuaranteeRequest",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "propertyOwner",
+              type: "address",
+            },
+            {
+              internalType: "uint256",
+              name: "propertyId",
+              type: "uint256",
+            },
+          ],
+          name: "approveOwnershipVerificationRequest",
+          outputs: [],
+          stateMutability: "nonpayable",
           type: "function",
         },
         {
@@ -2271,31 +2333,39 @@ const deployedContracts = {
           inputs: [
             {
               internalType: "address",
-              name: "",
+              name: "guarantorAddress",
               type: "address",
-            },
-            {
-              internalType: "uint256",
-              name: "",
-              type: "uint256",
             },
           ],
           name: "guaranteeRequestsByGuarantor",
           outputs: [
             {
-              internalType: "address",
-              name: "propertyOwner",
-              type: "address",
-            },
-            {
-              internalType: "uint256",
-              name: "propertyId",
-              type: "uint256",
-            },
-            {
-              internalType: "address",
-              name: "requestedGuarantor",
-              type: "address",
+              components: [
+                {
+                  internalType: "address",
+                  name: "propertyOwner",
+                  type: "address",
+                },
+                {
+                  internalType: "uint256",
+                  name: "propertyId",
+                  type: "uint256",
+                },
+                {
+                  internalType: "address",
+                  name: "requestedGuarantor",
+                  type: "address",
+                },
+                {
+                  internalType: "bool",
+                  name: "isApproved",
+                  type: "bool",
+                },
+              ],
+              internalType:
+                "struct LinkRealVerifiedEntities.PropertyGuaranteeRequest[]",
+              name: "",
+              type: "tuple[]",
             },
           ],
           stateMutability: "view",
@@ -2444,31 +2514,39 @@ const deployedContracts = {
           inputs: [
             {
               internalType: "address",
-              name: "",
+              name: "verifierAddress",
               type: "address",
-            },
-            {
-              internalType: "uint256",
-              name: "",
-              type: "uint256",
             },
           ],
           name: "ownershipVerificationRequestsByVerifier",
           outputs: [
             {
-              internalType: "address",
-              name: "propertyOwner",
-              type: "address",
-            },
-            {
-              internalType: "uint256",
-              name: "propertyId",
-              type: "uint256",
-            },
-            {
-              internalType: "address",
-              name: "requestedVerifier",
-              type: "address",
+              components: [
+                {
+                  internalType: "address",
+                  name: "propertyOwner",
+                  type: "address",
+                },
+                {
+                  internalType: "uint256",
+                  name: "propertyId",
+                  type: "uint256",
+                },
+                {
+                  internalType: "address",
+                  name: "requestedVerifier",
+                  type: "address",
+                },
+                {
+                  internalType: "bool",
+                  name: "isApproved",
+                  type: "bool",
+                },
+              ],
+              internalType:
+                "struct LinkRealVerifiedEntities.PropertyOwnershipVerificationRequest[]",
+              name: "",
+              type: "tuple[]",
             },
           ],
           stateMutability: "view",

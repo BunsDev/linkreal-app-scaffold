@@ -5,10 +5,10 @@ import { useAccount, useWriteContract } from "wagmi";
 import PropertyCard from "~~/components/PropertyCard";
 import PropertyReviewCard from "~~/components/PropertyReviewCard";
 import deployedContracts from "~~/contracts/deployedContracts";
+import { useEthersSigner } from "~~/hooks/easWagmiHooks";
 import { useScaffoldReadContract, useScaffoldWriteContract, useTransactor } from "~~/hooks/scaffold-eth";
 import { HOST, chainId } from "~~/settings/config";
 import { attestTos } from "~~/utils/attestations";
-import { useEthersSigner } from "~~/hooks/easWagmiHooks";
 
 const ListingForm = ({ property, createQueryString }: any) => {
   const { address: connectedWalletAddress } = useAccount();
@@ -217,14 +217,26 @@ const RequestOwnershipVerifications = () => {
   const handleSubmit = async (e: any) => {
     try {
       e.preventDefault();
-      console.log("Selected Verifier:", selectedVerifier);
+      console.log("Selected Verifier Name:", selectedVerifier);
+
+      const selectedVerifierAddress = ownershipVerifierStructs
+        ? ownershipVerifierStructs.find((verifier: any) => verifier.ownershipVerifierName === selectedVerifier)
+            ?.verifierAddress
+        : undefined;
+
+      const args = [
+        propertyOwner ? propertyOwner : undefined,
+        propertyId ? BigInt(propertyId) : undefined,
+        selectedVerifierAddress,
+      ];
+      console.log({ args });
 
       await writeContractAsync({
         functionName: "requestOwnershipVerification",
         args: [
           propertyOwner ? propertyOwner : undefined,
           propertyId ? BigInt(propertyId) : undefined,
-          selectedVerifier,
+          selectedVerifierAddress,
         ],
       });
 
@@ -460,10 +472,12 @@ const IndividualAssetListing = ({ property }: any | null) => {
 
   const handleStepChange = (clickedStep: number) => {
     if (clickedStep >= 4) {
-      // Call your backend to check if the atleast one gurantor has been added.
-      const guranterAdded = true;
-      if (!guranterAdded) {
-        alert("Please add a gurantor to proceed");
+      // TODO: Call your backend or contract to check if issuance is valid before sending sign TOS tx.
+      // This logic get checked in issueRWA funciton in the contract.
+
+      const validIssuance = true; // hardcoded for now.
+      if (!validIssuance) {
+        alert("Please add a gurantee or collataral to proceed");
         return;
       }
     }

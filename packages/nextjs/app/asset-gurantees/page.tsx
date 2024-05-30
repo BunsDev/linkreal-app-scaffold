@@ -4,97 +4,70 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { NextPage } from "next";
 import { useAccount } from "wagmi";
+import { useEthersSigner } from "~~/hooks/easWagmiHooks";
+import { useScaffoldReadContract, useScaffoldWriteContract } from "~~/hooks/scaffold-eth";
+import { attestAsPropertyGuarantor } from "~~/utils/attestations";
 
 const ProvideGuarantee: NextPage = () => {
   const { address: connectedWalletAddress } = useAccount();
   const [isGuarantor, setIsGuarantor] = useState<boolean>(false);
   const [ownerAddress, setOwnerAddress] = useState<string>("");
   // TODO: add types to assetDetails
-  const [assetDetails, setAssetDetails] = useState<Array<any>>([]);
+  const [assetGuaranteeRequests, setAssetDetails] = useState<any>([]);
   const searchParams = useSearchParams();
-
   const queryWalletAddress = searchParams.get("wallet");
 
-  useEffect(() => {
-    const checkGuarantor = async () => {
-      try {
-        const response = await fetch("/api/check-guarantor", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ walletAddress: connectedWalletAddress }),
-        });
-        const data = await response.json();
-        setIsGuarantor(data.isGuarantor);
-      } catch (error) {
-        console.error("Error checking guarantor:", error);
-      }
-    };
+  const easSigner = useEthersSigner();
 
-    if (connectedWalletAddress) {
-      checkGuarantor();
-    }
-  }, [connectedWalletAddress]);
+  const { data: guaranteeRequestData, isLoading } = useScaffoldReadContract({
+    contractName: "LinkRealVerifiedEntities",
+    functionName: "guaranteeRequestsByGuarantor",
+    args: [connectedWalletAddress],
+  });
+
+  const { data: isAssetGurantor } = useScaffoldReadContract({
+    contractName: "LinkRealVerifiedEntities",
+    functionName: "isGuarantor",
+    args: [connectedWalletAddress],
+  });
+
+  const { writeContractAsync: writeContractAsyncLRVE } = useScaffoldWriteContract("LinkRealVerifiedEntities");
+  const { writeContractAsync: writeContractAsyncRETR } = useScaffoldWriteContract("RealEstateTokenRegistry");
+
+  useEffect(() => {
+    setIsGuarantor(Boolean(isAssetGurantor));
+  }, [connectedWalletAddress, isAssetGurantor]);
 
   useEffect(() => {
     if (isGuarantor) {
-      fetchAssetDetails();
+      const pendingApprovalRequests = guaranteeRequestData?.filter((request: any) => request.isApproved === false);
+      setAssetDetails(pendingApprovalRequests);
     }
   }, [isGuarantor]);
+
+  const filterAssetDetailsByOwner = (propertyOwner: string) => {
+    const filtered = guaranteeRequestData?.filter((request: any) => request.propertyOwner === propertyOwner);
+    setAssetDetails(filtered);
+  };
 
   const handleOwnerAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setOwnerAddress(e.target.value);
   };
 
-  const fetchAssetDetails = async () => {
-    // TODO: if isGurantor is false, fetch all asset details for the ownerAddress from backend
-    // TODO: if isGurantor is true, fetch only the assets that this guarantor ( connectedWalletAddress ) has been requested to provide guarantee for
-    try {
-      //   const response = await fetch("/api/asset-details", {
-      //     method: "POST",
-      //     headers: {
-      //       "Content-Type": "application/json",
-      //     },
-      //     body: JSON.stringify({ ownerAddress }),
-      //   });
-      //   const data = await response.json();
-      //   setAssetDetails(data.assetDetails);
-
-      // Dummy data for testing
-      const dummyData = [
-        {
-          id: "1",
-          address: "Dummy Address 1",
-          total_value: 1000,
-          fractions_count: 10,
-          description: "Dummy Description 1",
-        },
-        {
-          id: "2",
-          address: "Dummy Address 2",
-          total_value: 2000,
-          fractions_count: 20,
-          description: "Dummy Description 2",
-        },
-      ];
-      setAssetDetails(dummyData);
-    } catch (error) {
-      console.error("Error fetching asset details:", error);
-    }
-  };
-
-  const handleProvideGuarantee = async (propertyId: string) => {
+  const handleProvideGuarantee = async (propertyId: bigint, propertyOwner: string) => {
     setAssetDetails((prevAssetDetails: any) =>
       prevAssetDetails.map((prev: any) => (prev.id === propertyId ? { ...prev, submitting: true } : prev)),
     );
     try {
-      // TODO:
-      // 1. Popup metamask and get signed attestation of gurantee 
-      // 2. Save attestation in the smart contract
-      // TODO: Also update the db to reflect that the guarantee has been provided
-
-      const simulateTx = await new Promise(resolve => setTimeout(resolve, 1000));
+      const attestationUID = await attestAsPropertyGuarantor(easSigner, Number(propertyId), ownerAddress);
+      await writeContractAsyncRETR({
+        functionName: "provideGurantee",
+        args: [propertyId, propertyOwner, attestationUID as `0x${string}`],
+      });
+      await writeContractAsyncLRVE({
+        functionName: "approveGuaranteeRequest",
+        args: [ownerAddress, propertyId],
+      });
 
       alert("Guarantee provided successfully");
 
@@ -104,21 +77,21 @@ const ProvideGuarantee: NextPage = () => {
       console.error("Error providing guarantee:", error);
       alert("Failed to provide guarantee");
     }
-    setAssetDetails((prevAssetDetails: any) =>
-      prevAssetDetails.map((prev: any) => (prev.id === propertyId ? { ...prev, submitting: false } : prev)),
-    );
   };
 
-  const handleProvideCollataral = async (propertyId: string) => {
+  const handleProvideCollataral = async (propertyId: bigint, propertyOwner: string) => {
     setAssetDetails((prevAssetDetails: any) =>
       prevAssetDetails.map((prev: any) => (prev.id === propertyId ? { ...prev, submitting: true } : prev)),
     );
     try {
-      // TODO:
-      // 1. Popup metamask and call provideCollataral function in the smart contract
-      // TODO: also save collataral amount in the db for easy retrieval
-
-      const simulateTx = await new Promise(resolve => setTimeout(resolve, 1000));
+      await writeContractAsyncRETR({
+        functionName: "provideGurantee",
+        args: [propertyId, propertyOwner, `0x0`],
+      });
+      await writeContractAsyncLRVE({
+        functionName: "approveGuaranteeRequest",
+        args: [ownerAddress, propertyId],
+      });
 
       alert("Guarantee provided successfully");
 
@@ -153,32 +126,29 @@ const ProvideGuarantee: NextPage = () => {
                 className="shadow appearance-none border rounded w-full py-2 px-3 leading-tight focus:outline-none focus:shadow-outline"
                 placeholder="Enter the asset owner's wallet address"
               />
-              <button onClick={fetchAssetDetails} className="btn btn-outline btn-sm mt-4">
-                Fetch Asset Details
+              <button onClick={() => filterAssetDetailsByOwner(ownerAddress)} className="btn btn-outline btn-sm mt-4">
+                Fetch Asset Gurantee Requests
               </button>
             </div>
-            {assetDetails.length > 0 && (
+            {assetGuaranteeRequests.length > 0 && (
               <ul className="space-y-4">
-                {assetDetails.map(asset => (
-                  <li key={asset.id} className="p-4 border rounded-lg shadow-sm">
+                {assetGuaranteeRequests.map((request: any) => (
+                  <li key={request.id} className="p-4 border rounded-lg shadow-sm">
                     <p>
-                      <strong>Address:</strong> {asset.address}
+                      <strong>Owner:</strong> {request.propertyOwner}
                     </p>
                     <p>
-                      <strong>Total Value:</strong> ${asset.total_value}
+                      <strong>Property Id:</strong> {request.propertyId.toString()}
                     </p>
                     <p>
-                      <strong>Fractions Count:</strong> {asset.fractions_count}
-                    </p>
-                    <p>
-                      <strong>Description:</strong> {asset.description}
+                      <strong>Requested Verifier:</strong> {request.requestedVerifier}
                     </p>
                     <button
-                      onClick={() => handleProvideCollataral(asset.id)}
+                      onClick={() => handleProvideCollataral(request.propertyId, request.propertyOwner)}
                       className="mt-2 btn btn-primary"
-                      disabled={asset.submitting}
+                      disabled={request.submitting || isAssetGurantor}
                     >
-                      {asset.submitting ? "Submitting..." : "Provide Collataral"}
+                      {request.submitting ? "Submitting..." : "Provide Collataral"}
                     </button>
                   </li>
                 ))}
@@ -188,28 +158,25 @@ const ProvideGuarantee: NextPage = () => {
         </div>
       ) : (
         <div>
-          {assetDetails.length > 0 && (
+          {assetGuaranteeRequests.length > 0 && (
             <ul className="space-y-4">
-              {assetDetails.map(asset => (
-                <li key={asset.id} className="p-4 border rounded-lg shadow-sm">
+              {assetGuaranteeRequests.map((request: any) => (
+                <li key={request.propertyId} className="p-4 border rounded-lg shadow-sm">
                   <p>
-                    <strong>Address:</strong> {asset.address}
+                    <strong>Owner:</strong> {request.propertyOwner}
                   </p>
                   <p>
-                    <strong>Total Value:</strong> ${asset.total_value}
+                    <strong>Property Id:</strong> {request.propertyId.toString()}
                   </p>
                   <p>
-                    <strong>Fractions Count:</strong> {asset.fractions_count}
-                  </p>
-                  <p>
-                    <strong>Description:</strong> {asset.description}
+                    <strong>Requested Verifier:</strong> {request.requestedVerifier}
                   </p>
                   <button
-                    onClick={() => handleProvideGuarantee(asset.id)}
+                    onClick={() => handleProvideGuarantee(request.propertyId, request.propertyOwner)}
                     className="mt-2 btn btn-primary"
-                    disabled={asset.submitting}
+                    disabled={request.submitting}
                   >
-                    {asset.submitting ? "Submitting..." : "Provide Guarantee"}
+                    {request.submitting ? "Submitting..." : "Provide Guarantee"}
                   </button>
                 </li>
               ))}
