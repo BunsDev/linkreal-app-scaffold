@@ -41,7 +41,9 @@ const PropertyCard = ({ property, setProperty }: any) => {
         <div className="mb-5">
           <strong>Address:</strong> {property.propertyAddress}
           <br />
-          <strong>Price:</strong> {property.propertyListValue.toString()}
+          <strong>List Value:</strong> {property.propertyListValue.toString()}
+          <br />
+          <strong>Property Appraisal:</strong> {property.propertyValueAppraisal.toString()}
           <br />
           <strong>Fractions:</strong> {property.propertyFractionsCount.toString()}
           <br />

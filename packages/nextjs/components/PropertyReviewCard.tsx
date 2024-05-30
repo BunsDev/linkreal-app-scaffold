@@ -18,24 +18,26 @@ const PropertyReviewCard = ({ property, handleConfirm }: any) => {
           <br />
           <strong>Address:</strong> {property.propertyAddress}
           <br />
-          <strong>Price:</strong> {property.propertyListValue.toString()}
+          <strong>List Value:</strong> {property.propertyListValue.toString()}
+          <br />
+          <strong>Property Appraisal:</strong> {property.propertyValueAppraisal.toString()}
           <br />
           <strong>Fractions:</strong> {property.propertyFractionsCount.toString()}
           <br />
           <strong>Ownership Verifier: </strong>{" "}
           {property.propertyOwnershipVerifier === "0x0000000000000000000000000000000000000000"
-            ? "Not Requested"
+            ? "Not set"
             : property.propertyOwnershipVerifier}
           <br />
           <strong>Guarantor: </strong>{" "}
           {property.propertyGuarantor === "0x0000000000000000000000000000000000000000"
-            ? "Not Requested"
+            ? "Not set"
             : property.propertyGuarantor}
           <br />
           <strong>Collateral Amount</strong>{" "}
           {property.propertyCollateralAmount ? property.propertyCollateralAmount.toString() : 0}
           <br />
-          <strong>Photo:</strong> {property.metadata.propertyImageURL ? property.metadata.propertyImageURL : "N/A"}
+          <strong>Photo:</strong> {property.metadata.propertyImageURL ? property.metadata.propertyImageURL : "Not set"}
           <br />
           <strong>Description:</strong> {property.metadata.description}{" "}
         </div>

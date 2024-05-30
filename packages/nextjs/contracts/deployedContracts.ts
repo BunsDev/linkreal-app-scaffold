@@ -2004,7 +2004,7 @@ const deployedContracts = {
       },
     },
     LinkRealVerifiedEntities: {
-      address: "0xE6E340D132b5f46d1e472DebcD681B2aBc16e57E",
+      address: "0xa82fF9aFd8f496c3d6ac40E2a0F282E47488CFc9",
       abi: [
         {
           inputs: [

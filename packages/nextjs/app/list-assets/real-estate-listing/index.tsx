@@ -295,7 +295,7 @@ const RequestGurantees = () => {
     console.log("Guarantor structs", guarantorStructs);
     const guarantorNames = guarantorStructs ? guarantorStructs.map((guarantor: any) => guarantor.guarantorName) : [];
     guarantorNames.length && setGurantors(guarantorNames);
-  }, []);
+  }, [guarantorStructs]);
 
   const handleGurantorChange = (e: any) => {
     setSelectedGurantor(e.target.value);
@@ -305,14 +305,16 @@ const RequestGurantees = () => {
     try {
       e.preventDefault();
       // setSubmitting(true);
-      console.log({ selectedGurantor });
+      const selectedGuarantorAddress = guarantorStructs
+        ? guarantorStructs.find((guarantor: any) => guarantor.guarantorName === selectedGurantor)?.guarantorAddress
+        : undefined;
 
       await writeContractAsync({
         functionName: "requestGuarantee",
         args: [
           propertyOwner ? propertyOwner : undefined,
           propertyId ? BigInt(propertyId) : undefined,
-          selectedGurantor,
+          selectedGuarantorAddress,
         ],
       });
 
