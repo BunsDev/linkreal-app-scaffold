@@ -68,6 +68,8 @@ contract RealEstateTokenRegistry is
 	// TODO: remove reduntant data storage onchain and fetch via offchain DS
 	mapping(address => PropertyData[]) private _propertyDataByOwner; // propertyOwner => PropertyData[]
 
+	PropertyData[] public allPropertyDataArray; // For temporaily use
+
 	constructor(
 		address defaultAdmin,
 		address pauser,
@@ -92,6 +94,10 @@ contract RealEstateTokenRegistry is
 		address owner
 	) public view returns (PropertyData[] memory) {
 		return _propertyDataByOwner[owner];
+	}
+
+	function allPropertyData() public view returns (PropertyData[] memory) {
+		return allPropertyDataArray;
 	}
 
 	function setURI(string memory newuri) public onlyRole(URI_SETTER_ROLE) {
@@ -224,6 +230,9 @@ contract RealEstateTokenRegistry is
 	) public {
 		_validateIssuance(propertyOwnerAddress, propertyId);
 		_propertyData[propertyOwnerAddress][propertyId].isListed = isListed;
+		allPropertyDataArray.push(
+			_propertyData[propertyOwnerAddress][propertyId]
+		); // Just temporaily. TODO: remove this
 		_mint(propertyOwnerAddress, propertyId, assetShares, data);
 	}
 
