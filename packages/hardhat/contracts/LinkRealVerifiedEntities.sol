@@ -203,6 +203,7 @@ contract LinkRealVerifiedEntities is Pausable, AccessControl {
 		ownershipVerifierData[verifierAddress] = _verifierData;
 		ownershipVerifiers.push(verifierAddress);
 		ownershipVerifierDataArray.push(_verifierData);
+		_grantRole(OWNERSHIP_VERIFIER_ROLE, verifierAddress);
 		emit OwnershipVerifierDataAdded(
 			verifierAddress,
 			verifierName,
@@ -223,6 +224,7 @@ contract LinkRealVerifiedEntities is Pausable, AccessControl {
 		guarantorData[guarantorAddress] = _guarantorData;
 		guarantors.push(guarantorAddress);
 		guarantorDataArray.push(_guarantorData);
+		_grantRole(GUARANTOR_ROLE, guarantorAddress);
 		emit GuarantorDataAdded(
 			guarantorAddress,
 			guarantorName,
