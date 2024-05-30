@@ -27,7 +27,8 @@ async function registerOwnershipVerifierSchema(schemaRegistry: SchemaRegistry) {
   });
 
   // Optional: Wait for transaction to be validated
-  await transaction.wait();
+  const ownershipVerifierSchemaUid = await transaction.wait();
+  console.log({ ownershipVerifierSchemaUid });
 }
 
 async function registerGuarantorSchema(schemaRegistry: SchemaRegistry) {
@@ -41,7 +42,8 @@ async function registerGuarantorSchema(schemaRegistry: SchemaRegistry) {
   });
 
   // Optional: Wait for transaction to be validated
-  await transaction.wait();
+  const guarnatorSchemaUid = await transaction.wait();
+  console.log({ guarnatorSchemaUid });
 }
 
 async function TOSSchema(schemaRegistry: SchemaRegistry) {
@@ -54,7 +56,8 @@ async function TOSSchema(schemaRegistry: SchemaRegistry) {
   });
 
   // Optional: Wait for transaction to be validated
-  await transaction.wait();
+  const tosSchemaUID = await transaction.wait();
+  console.log({ tosSchemaUID });
 }
 
 main().catch(error => {

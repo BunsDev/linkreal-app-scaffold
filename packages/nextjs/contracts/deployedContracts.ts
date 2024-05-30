@@ -7,7 +7,7 @@ import { GenericContractsDeclaration } from "~~/utils/scaffold-eth/contract";
 const deployedContracts = {
   31337: {
     AssetValueUpdater: {
-      address: "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
+      address: "0x959922bE3CAee4b8Cd9a407cc3ac1C251C2007B1",
       abi: [
         {
           inputs: [
@@ -3288,7 +3288,7 @@ const deployedContracts = {
       },
     },
     RealEstateTokenPurchaser: {
-      address: "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
+      address: "0x9A9f2CCfdE556A7E9Ff0848998Aa4a0CFD8863AE",
       abi: [
         {
           inputs: [
@@ -3372,7 +3372,7 @@ const deployedContracts = {
       inheritedFunctions: {},
     },
     RealEstateTokenRegistry: {
-      address: "0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0",
+      address: "0x0B306BF915C4d645ff596e518fAf3F9669b97016",
       abi: [
         {
           inputs: [
@@ -3858,6 +3858,200 @@ const deployedContracts = {
               internalType: "bytes32",
               name: "",
               type: "bytes32",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "allPropertyData",
+          outputs: [
+            {
+              components: [
+                {
+                  internalType: "address",
+                  name: "propertyOwner",
+                  type: "address",
+                },
+                {
+                  internalType: "uint256",
+                  name: "propertyId",
+                  type: "uint256",
+                },
+                {
+                  internalType: "string",
+                  name: "propertyAddress",
+                  type: "string",
+                },
+                {
+                  internalType: "uint256",
+                  name: "propertyListValue",
+                  type: "uint256",
+                },
+                {
+                  internalType: "uint256",
+                  name: "propertyValueAppraisal",
+                  type: "uint256",
+                },
+                {
+                  internalType: "uint256",
+                  name: "propertyFractionsCount",
+                  type: "uint256",
+                },
+                {
+                  internalType: "address",
+                  name: "propertyOwnershipVerifier",
+                  type: "address",
+                },
+                {
+                  internalType: "address",
+                  name: "propertyGuarantor",
+                  type: "address",
+                },
+                {
+                  internalType: "bytes32",
+                  name: "propertyOwnerShipVerifierAttestationUID",
+                  type: "bytes32",
+                },
+                {
+                  internalType: "bytes32",
+                  name: "propertyGuarantorAttestationUID",
+                  type: "bytes32",
+                },
+                {
+                  internalType: "uint256",
+                  name: "propertyCollateralAmount",
+                  type: "uint256",
+                },
+                {
+                  internalType: "bytes32",
+                  name: "propertyOwnerTOSAttastationUID",
+                  type: "bytes32",
+                },
+                {
+                  components: [
+                    {
+                      internalType: "string",
+                      name: "propertyImageURL",
+                      type: "string",
+                    },
+                    {
+                      internalType: "string",
+                      name: "description",
+                      type: "string",
+                    },
+                  ],
+                  internalType:
+                    "struct RealEstateTokenRegistry.propertyMetadata",
+                  name: "metadata",
+                  type: "tuple",
+                },
+                {
+                  internalType: "bool",
+                  name: "isListed",
+                  type: "bool",
+                },
+              ],
+              internalType: "struct RealEstateTokenRegistry.PropertyData[]",
+              name: "",
+              type: "tuple[]",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          name: "allPropertyDataArray",
+          outputs: [
+            {
+              internalType: "address",
+              name: "propertyOwner",
+              type: "address",
+            },
+            {
+              internalType: "uint256",
+              name: "propertyId",
+              type: "uint256",
+            },
+            {
+              internalType: "string",
+              name: "propertyAddress",
+              type: "string",
+            },
+            {
+              internalType: "uint256",
+              name: "propertyListValue",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "propertyValueAppraisal",
+              type: "uint256",
+            },
+            {
+              internalType: "uint256",
+              name: "propertyFractionsCount",
+              type: "uint256",
+            },
+            {
+              internalType: "address",
+              name: "propertyOwnershipVerifier",
+              type: "address",
+            },
+            {
+              internalType: "address",
+              name: "propertyGuarantor",
+              type: "address",
+            },
+            {
+              internalType: "bytes32",
+              name: "propertyOwnerShipVerifierAttestationUID",
+              type: "bytes32",
+            },
+            {
+              internalType: "bytes32",
+              name: "propertyGuarantorAttestationUID",
+              type: "bytes32",
+            },
+            {
+              internalType: "uint256",
+              name: "propertyCollateralAmount",
+              type: "uint256",
+            },
+            {
+              internalType: "bytes32",
+              name: "propertyOwnerTOSAttastationUID",
+              type: "bytes32",
+            },
+            {
+              components: [
+                {
+                  internalType: "string",
+                  name: "propertyImageURL",
+                  type: "string",
+                },
+                {
+                  internalType: "string",
+                  name: "description",
+                  type: "string",
+                },
+              ],
+              internalType: "struct RealEstateTokenRegistry.propertyMetadata",
+              name: "metadata",
+              type: "tuple",
+            },
+            {
+              internalType: "bool",
+              name: "isListed",
+              type: "bool",
             },
           ],
           stateMutability: "view",
