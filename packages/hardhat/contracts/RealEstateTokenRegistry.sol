@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 // Compatible with OpenZeppelin Contracts ^5.0.0
-pragma solidity ^0.8.20;
+pragma solidity 0.8.20;
 
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
@@ -51,6 +51,7 @@ contract RealEstateTokenRegistry is
 		uint propertyCollateralAmount;
 		bytes32 propertyOwnerTOSAttastationUID;
 		propertyMetadata metadata;
+		bool isListed;
 	}
 
 	// To temporarliy make stack too deep error go away
@@ -130,7 +131,8 @@ contract RealEstateTokenRegistry is
 			metadata: propertyMetadata({
 				propertyImageURL: propertyImageURL,
 				description: description
-			})
+			}),
+			isListed: false
 		});
 		_propertyData[propertyOwner][propertyId] = _propertyDataMemory;
 		currentPropertyIdCount[propertyOwner] = propertyId;
@@ -217,9 +219,11 @@ contract RealEstateTokenRegistry is
 		address propertyOwnerAddress,
 		uint256 propertyId,
 		uint256 assetShares,
+		bool isListed,
 		bytes memory data
 	) public {
 		_validateIssuance(propertyOwnerAddress, propertyId);
+		_propertyData[propertyOwnerAddress][propertyId].isListed = isListed;
 		_mint(propertyOwnerAddress, propertyId, assetShares, data);
 	}
 
@@ -227,10 +231,13 @@ contract RealEstateTokenRegistry is
 		address propertyOwnerAddress,
 		uint256[] memory propertyIds,
 		uint256[] memory assetShareAmounts,
+		bool[] memory isListeds,
 		bytes memory data
 	) public {
 		for (uint i = 0; i < propertyIds.length; i++) {
 			_validateIssuance(propertyOwnerAddress, propertyIds[i]);
+			_propertyData[propertyOwnerAddress][propertyIds[i]]
+				.isListed = isListeds[i];
 		}
 		_mintBatch(propertyOwnerAddress, propertyIds, assetShareAmounts, data);
 	}
