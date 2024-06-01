@@ -9,20 +9,39 @@ import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
 import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
 import "@ethereum-attestation-service/eas-contracts/contracts/IEAS.sol";
 import { EMPTY_UID } from "@ethereum-attestation-service/eas-contracts/contracts/Common.sol";
+import { IAny2EVMMessageReceiver } from "@chainlink/contracts-ccip/src/v0.8/ccip/interfaces/IAny2EVMMessageReceiver.sol";
+import { ReentrancyGuard } from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import { Client } from "@chainlink/contracts-ccip/src/v0.8/ccip/libraries/Client.sol";
+import { IRouterClient } from "@chainlink/contracts-ccip/src/v0.8/ccip/interfaces/IRouterClient.sol";
+
 import "hardhat/console.sol";
 
 error LinkReal__InvalidGuarantor();
 error LinkReal__InvalidGuarantorAttestation();
 error LinkReal__InvalidOwnershipVerifierAttestation();
 error LinkReal__AttestationOrCollateralRequired();
+error LinkReal__InvalidRouter(address router);
+error LinkReal__OperationNotAllowedOnCurrentChain(uint64 chainSelector);
+error LinkReal__ChainNotEnabled(uint64 chainSelector);
+error LinkReal__NotEnoughBalanceForFees(
+	uint256 currentBalance,
+	uint256 calculatedFees
+);
+error LinkReal__SenderNotEnabled(address sender);
 
 contract RealEstateTokenRegistry is
 	ERC1155,
 	AccessControl,
 	ERC1155Pausable,
 	ERC1155Burnable,
-	ERC1155Supply
+	ERC1155Supply,
+	ReentrancyGuard
 {
+	// enum PayFeesIn {
+	// 	Native,
+	// 	LINK
+	// }
+
 	bytes32 public constant URI_SETTER_ROLE = keccak256("URI_SETTER_ROLE");
 	bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
 	bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
@@ -33,6 +52,9 @@ contract RealEstateTokenRegistry is
 		keccak256("ASSET_APPRAISAL_UPDATER_ROLE");
 
 	IEAS public easContractInstance;
+
+	IRouterClient internal immutable i_ccipRouter;
+	uint64 private immutable i_currentChainSelector;
 
 	/**
 	 * @dev below attestation UIDs are stored in EAS.sol and can be verified by anyone.
@@ -60,6 +82,14 @@ contract RealEstateTokenRegistry is
 		string description;
 	}
 
+	struct xTokenDetails {
+		address xTokenAddress;
+		bytes ccipExtraArgsBytes;
+	}
+
+	mapping(uint64 destChainSelector => xTokenDetails xNftDetailsPerChain)
+		public s_chains;
+
 	// mapi public currentPropertyIdCount = 0; //
 	mapping(address => uint) public currentPropertyIdCount; // Include the unlisted properties as well
 
@@ -70,16 +100,176 @@ contract RealEstateTokenRegistry is
 
 	PropertyData[] public allPropertyDataArray; // For temporaily use
 
+	event ChainEnabled(
+		uint64 chainSelector,
+		address xNftAddress,
+		bytes ccipExtraArgs
+	);
+	event ChainDisabled(uint64 chainSelector);
+	event CrossChainSent(
+		address from,
+		address to,
+		uint256 tokenId,
+		uint64 sourceChainSelector,
+		uint64 destinationChainSelector
+	);
+	event CrossChainReceived(
+		address from,
+		address to,
+		uint256 tokenId,
+		uint64 sourceChainSelector,
+		uint64 destinationChainSelector
+	);
+
+	modifier onlyRouter() {
+		if (msg.sender != address(i_ccipRouter)) {
+			revert LinkReal__InvalidRouter(msg.sender);
+		}
+		_;
+	}
+
+	modifier onlyEnabledSender(uint64 _chainSelector, address _sender) {
+		if (s_chains[_chainSelector].xTokenAddress != _sender) {
+			revert LinkReal__SenderNotEnabled(_sender);
+		}
+		_;
+	}
+
+	modifier onlyOtherChains(uint64 _chainSelector) {
+		if (_chainSelector == i_currentChainSelector) {
+			revert LinkReal__OperationNotAllowedOnCurrentChain(_chainSelector);
+		}
+		_;
+	}
+
+	modifier onlyEnabledChain(uint64 _chainSelector) {
+		if (s_chains[_chainSelector].xTokenAddress == address(0)) {
+			revert LinkReal__ChainNotEnabled(_chainSelector);
+		}
+		_;
+	}
+
 	constructor(
 		address defaultAdmin,
 		address pauser,
 		address minter,
-		address easContractAddress
+		address easContractAddress,
+		address ccipRouterAddress,
+		uint64 currentChainSelector
 	) ERC1155("") {
+		if (ccipRouterAddress == address(0))
+			revert LinkReal__InvalidRouter(address(0));
+		i_ccipRouter = IRouterClient(ccipRouterAddress);
+		i_currentChainSelector = currentChainSelector;
+
 		_grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
 		_grantRole(PAUSER_ROLE, pauser);
 		_grantRole(MINTER_ROLE, minter);
 		easContractInstance = IEAS(easContractAddress);
+	}
+
+	function enableChain(
+		uint64 chainSelector,
+		address xNftAddress,
+		bytes memory ccipExtraArgs
+	) external onlyRole(DEFAULT_ADMIN_ROLE) onlyOtherChains(chainSelector) {
+		s_chains[chainSelector] = xTokenDetails({
+			xTokenAddress: xNftAddress,
+			ccipExtraArgsBytes: ccipExtraArgs
+		});
+
+		emit ChainEnabled(chainSelector, xNftAddress, ccipExtraArgs);
+	}
+
+	function disableChain(
+		uint64 chainSelector
+	) external onlyRole(DEFAULT_ADMIN_ROLE) onlyOtherChains(chainSelector) {
+		delete s_chains[chainSelector];
+
+		emit ChainDisabled(chainSelector);
+	}
+
+	function crossChainTransferFrom(
+		address to,
+		uint256 tokenId,
+		uint256 amount,
+		uint64 destinationChainSelector
+	)
+		external
+		nonReentrant
+		onlyEnabledChain(destinationChainSelector)
+		returns (bytes32 messageId)
+	{
+		// Right now only burns from msg.sender's wallet and then mints back to msg.sender in the other chain
+		address from = msg.sender;
+		_burn(from, tokenId, amount);
+
+		Client.EVM2AnyMessage memory message = Client.EVM2AnyMessage({
+			receiver: abi.encode(
+				s_chains[destinationChainSelector].xTokenAddress
+			),
+			data: abi.encode(from, to, tokenId),
+			tokenAmounts: new Client.EVMTokenAmount[](0),
+			extraArgs: s_chains[destinationChainSelector].ccipExtraArgsBytes,
+			feeToken: address(0)
+		});
+
+		// Get the fee required to send the CCIP message
+		uint256 fees = i_ccipRouter.getFee(destinationChainSelector, message);
+
+		// Only supports native fee payments
+		if (fees > address(this).balance) {
+			revert LinkReal__NotEnoughBalanceForFees(
+				address(this).balance,
+				fees
+			);
+		}
+
+		// Send the message through the router and store the returned message ID
+		messageId = i_ccipRouter.ccipSend{ value: fees }(
+			destinationChainSelector,
+			message
+		);
+
+		emit CrossChainSent(
+			from,
+			to,
+			tokenId,
+			i_currentChainSelector,
+			destinationChainSelector
+		);
+	}
+
+	function ccipReceive(
+		Client.Any2EVMMessage calldata message
+	)
+		external
+		virtual
+		// override
+		onlyRouter
+		nonReentrant
+		onlyEnabledChain(message.sourceChainSelector)
+		onlyEnabledSender(
+			message.sourceChainSelector,
+			abi.decode(message.sender, (address))
+		)
+	{
+		uint64 sourceChainSelector = message.sourceChainSelector;
+		(address from, address to, uint256 tokenId) = abi.decode(
+			message.data,
+			(address, address, uint256)
+		);
+
+		// TODO: also replicate other data in source chain as well before minting ( ex:- asset ownership attestations ). Or separate reciive funcionality to another contract and reference source contract and chain from there.
+		_mint(to, tokenId, 1, "");
+
+		emit CrossChainReceived(
+			from,
+			to,
+			tokenId,
+			sourceChainSelector,
+			i_currentChainSelector
+		);
 	}
 
 	function propertyData(
