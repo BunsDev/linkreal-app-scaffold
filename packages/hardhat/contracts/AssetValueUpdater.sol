@@ -8,10 +8,14 @@ import "./RealEstateTokenRegistry.sol";
 import { FunctionsClient } from "@chainlink/contracts/src/v0.8/functions/v1_0_0/FunctionsClient.sol";
 import { FunctionsRequest } from "@chainlink/contracts/src/v0.8/functions/v1_0_0/libraries/FunctionsRequest.sol";
 
+error OnlyAutomationForwarderCanCall();
+
 contract AssetValueUpdater is Pausable, AccessControl, FunctionsClient {
 	using FunctionsRequest for FunctionsRequest.Request;
 
 	RealEstateTokenRegistry public realEstateTokenRegistry;
+
+	address internal s_automationForwarderAddress;
 
 	bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
 
@@ -22,6 +26,13 @@ contract AssetValueUpdater is Pausable, AccessControl, FunctionsClient {
 	}
 
 	mapping(uint256 tokenId => PriceDetails) internal s_priceDetails;
+
+	modifier onlyAutomationForwarder() {
+		if (msg.sender != s_automationForwarderAddress) {
+			revert OnlyAutomationForwarderCanCall();
+		}
+		_;
+	}
 
 	constructor(
 		address defaultAdmin,
@@ -51,6 +62,12 @@ contract AssetValueUpdater is Pausable, AccessControl, FunctionsClient {
 	// 	);
 	// }
 
+	function setAutomationForwarder(
+		address automationForwarderAddress
+	) external onlyRole(DEFAULT_ADMIN_ROLE) {
+		s_automationForwarderAddress = automationForwarderAddress;
+	}
+
 	function updatePriceDetailsInitiate(
 		address propertyOwner,
 		uint256 propertyId,
@@ -58,13 +75,7 @@ contract AssetValueUpdater is Pausable, AccessControl, FunctionsClient {
 		uint32 gasLimit,
 		bytes32 donID,
 		string memory source
-	)
-		external
-		returns (
-			// onlyAutomationForwarder
-			bytes32 requestId
-		)
-	{
+	) external onlyAutomationForwarder returns (bytes32 requestId) {
 		FunctionsRequest.Request memory req;
 		req.initializeRequestForInlineJavaScript(source);
 
