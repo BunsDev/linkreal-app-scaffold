@@ -221,6 +221,20 @@ contract RealEstateTokenRegistry is
 			.propertyValueAppraisal = newValue;
 	}
 
+	/**
+	 * @notice This function is used to recover assets from a lost wallet to a new wallet. Can be only performed by vereified ASSET_RECOVERER_ROLE.
+	 * TODO: I have temporaily used GUARANTOR_ROLE for this. Change it to ASSET_RECOVERER_ROLE.
+	 */
+	function recoverAssetsTest(
+		address lostWallet,
+		address newWallet,
+		uint propertyId,
+		uint assetShares
+	) public onlyRole(GUARANTOR_ROLE) {
+		_burn(lostWallet, propertyId, assetShares);
+		_mint(newWallet, propertyId, assetShares, "");
+	}
+
 	function issueRWA(
 		address propertyOwnerAddress,
 		uint256 propertyId,
