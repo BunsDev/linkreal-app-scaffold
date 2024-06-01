@@ -202,13 +202,14 @@ contract RealEstateTokenRegistry is
 	{
 		// Right now only burns from msg.sender's wallet and then mints back to msg.sender in the other chain
 		address from = msg.sender;
+		PropertyData memory propertyDataMem = _propertyData[from][tokenId];
 		_burn(from, tokenId, amount);
 
 		Client.EVM2AnyMessage memory message = Client.EVM2AnyMessage({
 			receiver: abi.encode(
 				s_chains[destinationChainSelector].xTokenAddress
 			),
-			data: abi.encode(from, to, tokenId),
+			data: abi.encode(from, to, tokenId, propertyDataMem),
 			tokenAmounts: new Client.EVMTokenAmount[](0),
 			extraArgs: s_chains[destinationChainSelector].ccipExtraArgsBytes,
 			feeToken: address(0)
@@ -255,13 +256,14 @@ contract RealEstateTokenRegistry is
 		)
 	{
 		uint64 sourceChainSelector = message.sourceChainSelector;
-		(address from, address to, uint256 tokenId) = abi.decode(
+		(address from, address to, uint256 tokenId, PropertyData memory propertyData) = abi.decode(
 			message.data,
-			(address, address, uint256)
+			(address, address, uint256, PropertyData)
 		);
 
-		// TODO: also replicate other data in source chain as well before minting ( ex:- asset ownership attestations ). Or separate reciive funcionality to another contract and reference source contract and chain from there.
+		// TODO: also replicate other data in source chain as well before minting. Or separate reciive funcionality to another contract and reference source contract and chain from there.
 		_mint(to, tokenId, 1, "");
+		_propertyData[to][tokenId] = propertyData;
 
 		emit CrossChainReceived(
 			from,
