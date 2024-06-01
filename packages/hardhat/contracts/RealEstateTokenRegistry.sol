@@ -66,13 +66,13 @@ contract RealEstateTokenRegistry is
 		uint propertyId; // this propertyId is not unique across all properties. Unique only for a propertyOwner
 		string propertyAddress;
 		uint propertyListValue; // should get updated daily
-		uint propertyValueAppraisal; // should get updated daily
+		uint propertyValueAppraisal; // should get updated daily. Set in USD.
 		uint propertyFractionsCount;
 		address propertyOwnershipVerifier;
 		address propertyGuarantor;
 		bytes32 propertyOwnerShipVerifierAttestationUID;
 		bytes32 propertyGuarantorAttestationUID;
-		uint propertyCollateralAmount;
+		uint propertyCollateralAmount; 
 		bytes32 propertyOwnerTOSAttastationUID;
 		propertyMetadata metadata;
 		bool isListed;
@@ -355,6 +355,7 @@ contract RealEstateTokenRegistry is
 		// Optionally, the gurantee claim can be backed by collateral that's equal to the value of property.
 		address guarantorAddress = msg.sender;
 		bool isGuarantor = hasRole(GUARANTOR_ROLE, guarantorAddress);
+		// TODO: Use USDC or native token with correct fee conversions using chainlink data feeds
 		uint collateralAmount = msg.value;
 		uint requiredCollateralAmount = _propertyData[propertyOwnerAddress][
 			propertyId
