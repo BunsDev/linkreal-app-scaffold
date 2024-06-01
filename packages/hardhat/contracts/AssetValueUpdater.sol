@@ -5,27 +5,78 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/utils/Pausable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "./RealEstateTokenRegistry.sol";
+import { FunctionsClient } from "@chainlink/contracts/src/v0.8/functions/v1_0_0/FunctionsClient.sol";
+import { FunctionsRequest } from "@chainlink/contracts/src/v0.8/functions/v1_0_0/libraries/FunctionsRequest.sol";
 
-contract AssetValueUpdater is Pausable, AccessControl {
+contract AssetValueUpdater is Pausable, AccessControl, FunctionsClient {
+	using FunctionsRequest for FunctionsRequest.Request;
+
+	RealEstateTokenRegistry public realEstateTokenRegistry;
+
 	bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
 
-	constructor(address defaultAdmin, address pauser) {
+	struct PriceDetails {
+		uint80 listPrice;
+		uint80 originalListPrice;
+		uint80 taxAssessedValue;
+	}
+
+	mapping(uint256 tokenId => PriceDetails) internal s_priceDetails;
+
+	constructor(
+		address defaultAdmin,
+		address pauser,
+		address functionsRouterAddress,
+		address realEstateTokenRegistryAddress
+	) FunctionsClient(functionsRouterAddress) {
 		_grantRole(DEFAULT_ADMIN_ROLE, defaultAdmin);
 		_grantRole(PAUSER_ROLE, pauser);
+		realEstateTokenRegistry = RealEstateTokenRegistry(
+			realEstateTokenRegistryAddress
+		);
 	}
 
 	// TODO: make chainlink keepers call these functions daily
 
-	function updateAssetValueAppraisal(
-		address realEstateTokenRegistry,
+	// function updateAssetValueAppraisal(
+	// 	address realEstateTokenRegistry,
+	// 	address propertyOwner,
+	// 	uint propertyId
+	// ) public {
+	// 	uint newValue = 100; // TODO: fetch from zestimates via chainlink functions
+	// 	RealEstateTokenRegistry(realEstateTokenRegistry).updateAssetAppraisal(
+	// 		propertyOwner,
+	// 		propertyId,
+	// 		newValue
+	// 	);
+	// }
+
+	function updatePriceDetailsInitiate(
 		address propertyOwner,
-		uint propertyId
-	) public {
-		uint newValue = 100; // TODO: fetch from zestimates via chainlink functions
-		RealEstateTokenRegistry(realEstateTokenRegistry).updateAssetAppraisal(
-			propertyOwner,
-			propertyId,
-			newValue
+		uint256 propertyId,
+		uint64 subscriptionId,
+		uint32 gasLimit,
+		bytes32 donID,
+		string memory source
+	)
+		external
+		returns (
+			// onlyAutomationForwarder
+			bytes32 requestId
+		)
+	{
+		FunctionsRequest.Request memory req;
+		req.initializeRequestForInlineJavaScript(source);
+
+		string[] memory args = new string[](2);
+		args[0] = string(abi.encode(propertyId));
+		args[1] = string(abi.encode(propertyOwner));
+
+		requestId = _sendRequest(
+			req.encodeCBOR(),
+			subscriptionId,
+			gasLimit,
+			donID
 		);
 	}
 
@@ -35,5 +86,46 @@ contract AssetValueUpdater is Pausable, AccessControl {
 
 	function unpause() public onlyRole(PAUSER_ROLE) {
 		_unpause();
+	}
+
+	function fulfillRequest(
+		bytes32 /*requestId*/,
+		bytes memory response,
+		bytes memory /*err*/
+	) internal override {
+		(
+			address propertyOwner,
+			uint256 propertyId,
+			uint256 listPrice,
+			uint256 originalListPrice,
+			uint256 taxAssessedValue
+		) = abi.decode(response, (address, uint256, uint256, uint256, uint256));
+
+		// TODO: make hardcoded weights configurable
+		uint weightListPrice = 50;
+		uint weightOriginalListPrice = 30;
+		uint weightTaxAssessedValue = 20;
+
+		uint256 valuation = (weightListPrice *
+			listPrice +
+			weightOriginalListPrice *
+			originalListPrice +
+			weightTaxAssessedValue *
+			taxAssessedValue) /
+			(weightListPrice +
+				weightOriginalListPrice +
+				weightTaxAssessedValue);
+
+		realEstateTokenRegistry.updateAssetAppraisal(
+			propertyOwner,
+			propertyId,
+			valuation
+		);
+
+		s_priceDetails[propertyId] = PriceDetails({
+			listPrice: uint80(listPrice),
+			originalListPrice: uint80(originalListPrice),
+			taxAssessedValue: uint80(taxAssessedValue)
+		});
 	}
 }

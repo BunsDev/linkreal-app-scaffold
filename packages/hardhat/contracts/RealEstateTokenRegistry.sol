@@ -36,7 +36,8 @@ contract RealEstateTokenRegistry is
 	ERC1155Pausable,
 	ERC1155Burnable,
 	ERC1155Supply,
-	ReentrancyGuard
+	ReentrancyGuard,
+	IAny2EVMMessageReceiver
 {
 	// enum PayFeesIn {
 	// 	Native,
@@ -247,7 +248,7 @@ contract RealEstateTokenRegistry is
 	)
 		external
 		virtual
-		// override
+		override
 		onlyRouter
 		nonReentrant
 		onlyEnabledChain(message.sourceChainSelector)
@@ -257,10 +258,12 @@ contract RealEstateTokenRegistry is
 		)
 	{
 		uint64 sourceChainSelector = message.sourceChainSelector;
-		(address from, address to, uint256 tokenId, PropertyData memory propertyDataMem) = abi.decode(
-			message.data,
-			(address, address, uint256, PropertyData)
-		);
+		(
+			address from,
+			address to,
+			uint256 tokenId,
+			PropertyData memory propertyDataMem
+		) = abi.decode(message.data, (address, address, uint256, PropertyData));
 
 		// TODO: also replicate other data in source chain as well before minting. Or separate reciive funcionality to another contract and reference source contract and chain from there.
 		_mint(to, tokenId, 1, "");
