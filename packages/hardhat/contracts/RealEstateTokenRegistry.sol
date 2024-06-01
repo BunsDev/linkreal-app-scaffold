@@ -20,6 +20,7 @@ error LinkReal__InvalidGuarantor();
 error LinkReal__InvalidGuarantorAttestation();
 error LinkReal__InvalidOwnershipVerifierAttestation();
 error LinkReal__AttestationOrCollateralRequired();
+error LinkReal__AppraisalHasNotBeenSet();
 error LinkReal__InvalidRouter(address router);
 error LinkReal__OperationNotAllowedOnCurrentChain(uint64 chainSelector);
 error LinkReal__ChainNotEnabled(uint64 chainSelector);
@@ -464,6 +465,12 @@ contract RealEstateTokenRegistry is
 		PropertyData memory property = _propertyData[propertyOwnerAddress][
 			propertyId
 		];
+
+		// Appraisal, which can only be set by the AssetValueUpdater contract, is required for issuance.
+		if (property.propertyValueAppraisal == 0) {
+			revert LinkReal__AppraisalHasNotBeenSet();
+		}
+
 		uint collateralAmount = property.propertyCollateralAmount;
 		uint requiredCollateralAmount = property.propertyValueAppraisal;
 
