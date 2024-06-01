@@ -256,14 +256,14 @@ contract RealEstateTokenRegistry is
 		)
 	{
 		uint64 sourceChainSelector = message.sourceChainSelector;
-		(address from, address to, uint256 tokenId, PropertyData memory propertyData) = abi.decode(
+		(address from, address to, uint256 tokenId, PropertyData memory propertyDataMem) = abi.decode(
 			message.data,
 			(address, address, uint256, PropertyData)
 		);
 
 		// TODO: also replicate other data in source chain as well before minting. Or separate reciive funcionality to another contract and reference source contract and chain from there.
 		_mint(to, tokenId, 1, "");
-		_propertyData[to][tokenId] = propertyData;
+		_propertyData[to][tokenId] = propertyDataMem;
 
 		emit CrossChainReceived(
 			from,
