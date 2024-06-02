@@ -69,6 +69,8 @@ contract AssetValueUpdater is Pausable, AccessControl, FunctionsClient {
 		args[0] = string(abi.encode(propertyId));
 		args[1] = string(abi.encode(propertyOwner));
 
+		req.setArgs(args);
+
 		requestId = _sendRequest(
 			req.encodeCBOR(),
 			subscriptionId,
