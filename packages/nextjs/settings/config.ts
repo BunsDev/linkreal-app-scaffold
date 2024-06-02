@@ -2,7 +2,7 @@ import deployedContracts from "~~/contracts/deployedContracts";
 
 export const HOST = "http://localhost:3000";
 
-export const chainId = 31337;
+export const chainId = 421614;
 
 export const EASConfig = {
   31337: {
