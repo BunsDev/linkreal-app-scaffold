@@ -6700,7 +6700,7 @@ const deployedContracts = {
   },
   421614: {
     AssetValueUpdater: {
-      address: "0x6Ef06a2f7B54eEf7BF05BaEf9580aCbcFC7c8575",
+      address: "0x852116945835086732047bd325Aa5Bc8C94C5305",
       abi: [
         {
           inputs: [
@@ -6767,11 +6767,6 @@ const deployedContracts = {
         {
           inputs: [],
           name: "NoInlineSecrets",
-          type: "error",
-        },
-        {
-          inputs: [],
-          name: "OnlyAutomationForwarderCanCall",
           type: "error",
         },
         {
@@ -7081,19 +7076,6 @@ const deployedContracts = {
             },
           ],
           name: "revokeRole",
-          outputs: [],
-          stateMutability: "nonpayable",
-          type: "function",
-        },
-        {
-          inputs: [
-            {
-              internalType: "address",
-              name: "automationForwarderAddress",
-              type: "address",
-            },
-          ],
-          name: "setAutomationForwarder",
           outputs: [],
           stateMutability: "nonpayable",
           type: "function",
