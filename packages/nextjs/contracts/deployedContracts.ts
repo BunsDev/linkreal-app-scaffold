@@ -6700,7 +6700,7 @@ const deployedContracts = {
   },
   421614: {
     AssetValueUpdater: {
-      address: "0x852116945835086732047bd325Aa5Bc8C94C5305",
+      address: "0xFcb1e8a1AFDDA32cF0CC543e228C464A199e5F91",
       abi: [
         {
           inputs: [
@@ -6747,6 +6747,11 @@ const deployedContracts = {
             },
           ],
           name: "AccessControlUnauthorizedAccount",
+          type: "error",
+        },
+        {
+          inputs: [],
+          name: "EmptyArgs",
           type: "error",
         },
         {
