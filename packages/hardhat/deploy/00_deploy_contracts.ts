@@ -8,13 +8,14 @@ const CHAINLINK_CONFIG = {
     chain_selector: "5224473277236331295",
   },
   arbitrumSepolia: {
+    functions_router: "0x234a5fb5Bd614a7AA2FfAB244D603abFA0Ac5C5C",
     ccip_router: "0x2a9C5afB0d0e4BAb2BCdaE109EC4b0c4Be15a165",
     chain_selector: "3478487238524512106",
   },
 };
 
-const source_chain = "optimismSepolia"; // names set in hardhat.config.ts
-const target_chains = ["arbitrumSepolia"];
+const source_chain = "arbitrumSepolia"; // names set in hardhat.config.ts
+const target_chains = ["optimismSepolia"];
 type T_networkName = "optimismSepolia" | "arbitrumSepolia";
 
 /**
@@ -85,7 +86,7 @@ const deployLinkRealContracts: DeployFunction = async function (hre: HardhatRunt
 
   await deploy("AssetValueUpdater", {
     from: deployer,
-    args: [deployer, deployer, CHAINLINK_CONFIG.optimismSepolia.functions_router, realEstateTokenRegistryDepl.address],
+    args: [deployer, deployer, CHAINLINK_CONFIG[source_chain].functions_router, realEstateTokenRegistryDepl.address],
     log: true,
     autoMine: true,
   });
