@@ -38,6 +38,7 @@ const ProvideGuarantee: NextPage = () => {
     functionName: "propertyDataByOwner",
     args: [submittedOwnerAddressInput],
   });
+  console.log("submittedowneraddress input", submittedOwnerAddressInput, ownerPropertyData, "ownerPropertyData", ownerAddressInput, "owneraddressinpu")
 
   const { writeContractAsync: writeContractAsyncLRVE, isPending: isPendingLRVE } =
     useScaffoldWriteContract("LinkRealVerifiedEntities");
@@ -61,6 +62,7 @@ const ProvideGuarantee: NextPage = () => {
   }, [ownerPropertyData]);
 
   const handleOwnerAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log("e.target.value", e.target.value);
     setOwnerAddressInput(e.target.value);
   };
 
@@ -74,6 +76,7 @@ const ProvideGuarantee: NextPage = () => {
       await writeContractAsyncRETR({
         functionName: "provideGurantee",
         args: [propertyId, propertyOwner, attestationUID as `0x${string}`],
+        value: 200n,
       });
       await writeContractAsyncLRVE({
         functionName: "approveGuaranteeRequest",
@@ -152,7 +155,7 @@ const ProvideGuarantee: NextPage = () => {
                 Fetch Asset Gurantee Requests
               </button>
             </div>
-            {assetGuaranteeRequests.length > 0 && (
+            {assetGuaranteeRequests?.length > 0 && (
               <ul className="space-y-4">
                 {assetGuaranteeRequests.map((request: any) => (
                   <li key={request.propertyId} className="p-4 border rounded-lg shadow-sm">
@@ -177,7 +180,7 @@ const ProvideGuarantee: NextPage = () => {
         </div>
       ) : (
         <div>
-          {assetGuaranteeRequests.length > 0 ? (
+          {assetGuaranteeRequests?.length > 0 ? (
             <ul className="space-y-4">
               {assetGuaranteeRequests.map((request: any) => (
                 <li key={request.propertyId} className="p-4 border rounded-lg shadow-sm">

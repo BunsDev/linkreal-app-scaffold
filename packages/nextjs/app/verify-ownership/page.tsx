@@ -41,7 +41,7 @@ const VerifyOwnership: NextPage = () => {
 
   const handleVerify = async (propertyId: bigint, propertyOwner: string) => {
     setVerificationRequests((prevRequests: any) =>
-      prevRequests.map((prevRequest: any) =>
+      prevRequests?.map((prevRequest: any) =>
         prevRequest.propertyId === propertyId ? { ...prevRequest, submitting: true } : prevRequest,
       ),
     );
@@ -66,7 +66,7 @@ const VerifyOwnership: NextPage = () => {
     } catch (error) {
       console.error("Error verifying ownership:", error);
       setVerificationRequests((prevRequests: any) =>
-        prevRequests.map((prevRequest: any) =>
+        prevRequests?.map((prevRequest: any) =>
           prevRequest.propertyId === propertyId ? { ...prevRequest, submitting: false } : prevRequest,
         ),
       );
@@ -79,11 +79,11 @@ const VerifyOwnership: NextPage = () => {
       {isVerifier ? (
         <>
           <h1 className="text-2xl font-bold mb-6">Pending Verification Requests</h1>
-          {verificationRequests.length <= 0 ? (
+          {verificationRequests?.length <= 0 ? (
             <p>No pending verification requests.</p>
           ) : (
             <ul className="space-y-4">
-              {verificationRequests.map((request: any) => (
+              {verificationRequests?.map((request: any) => (
                 <li key={request.propertyId} className="p-4 border rounded-lg shadow-sm">
                   <p>
                     <strong>Owner:</strong> {request.propertyOwner}

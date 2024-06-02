@@ -5,14 +5,14 @@ export const HOST = "http://localhost:3000";
 export const chainId = 421614;
 
 export const EASConfig = {
-  31337: {
+  [chainId]: {
     contracts: {
       EAS: deployedContracts[chainId].EAS.address,
       SchemaRegistry: "",
     },
     schemaUIDs: {
-      OwnershipVerifier: "0x07254f3fbf6cae088e05014940e2c73659fa6f7ee75a0cb5d1d84a212fbe7d2c",
-      Guarantor: "0x3081e6f73b59c0397e7f565a94f894218970bcbed11832b8521c398b31ec8ac7",
+      OwnershipVerifier: "0xcff76e6b72e584d7c5510f59447e0633b243e3277eb479cbea932e6f8371f4b0",
+      Guarantor: "0x4813b575ad8f151b96c46a1745e946288f2abcec76fcfba2cb63eb5d9d57c03b",
       TOS: "0x8960db49adcbef2a058007ebcf4df60234e013e51fc871d13cb15a5fffece011",
     },
   },
