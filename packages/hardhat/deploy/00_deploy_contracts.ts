@@ -1,7 +1,7 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
 
-const CHAINLINK_CONFIG = {
+export const CHAINLINK_CONFIG = {
   optimismSepolia: {
     functions_router: "0xC17094E3A1348E5C7544D4fF8A36c28f2C6AAE28",
     ccip_router: "0x114A20A10b43D4115e5aeef7345a1A71d2a60C57",
@@ -14,9 +14,9 @@ const CHAINLINK_CONFIG = {
   },
 };
 
-const source_chain = "arbitrumSepolia"; // names set in hardhat.config.ts
-const destination_chains = ["optimismSepolia"];
-type T_networkName = "optimismSepolia" | "arbitrumSepolia";
+export const source_chain = "arbitrumSepolia"; // names set in hardhat.config.ts
+export const destination_chains = ["optimismSepolia"];
+export type T_networkName = "optimismSepolia" | "arbitrumSepolia";
 
 /**
  * @param hre HardhatRuntimeEnvironment object.
@@ -44,7 +44,7 @@ const deployLinkRealContracts: DeployFunction = async function (hre: HardhatRunt
 
   console.log("Deploying contracts to network: ", networkName);
 
-  const schemaRegistry = await deploy("SchemaRegistry", {
+  const schemaRegistryDepl = await deploy("SchemaRegistry", {
     from: deployer,
     // Contract constructor arguments
     args: [],
@@ -52,9 +52,9 @@ const deployLinkRealContracts: DeployFunction = async function (hre: HardhatRunt
     autoMine: true,
   });
 
-  const eas = await deploy("EAS", {
+  const easDepl = await deploy("EAS", {
     from: deployer,
-    args: [schemaRegistry.address],
+    args: [schemaRegistryDepl.address],
     log: true,
     autoMine: true,
   });
@@ -66,7 +66,7 @@ const deployLinkRealContracts: DeployFunction = async function (hre: HardhatRunt
       deployer,
       deployer,
       deployer,
-      eas.address,
+      easDepl.address,
       CHAINLINK_CONFIG[networkName].ccip_router,
       CHAINLINK_CONFIG[networkName].chain_selector,
     ],
@@ -76,7 +76,7 @@ const deployLinkRealContracts: DeployFunction = async function (hre: HardhatRunt
     autoMine: true,
   });
 
-  await deploy("LinkRealVerifiedEntities", {
+  const linkRealVEDepl = await deploy("LinkRealVerifiedEntities", {
     from: deployer,
     // Contract constructor arguments
     args: [deployer, deployer],
@@ -84,23 +84,23 @@ const deployLinkRealContracts: DeployFunction = async function (hre: HardhatRunt
     autoMine: true,
   });
 
-  await deploy("AssetValueUpdater", {
+  const assetValueUDepl = await deploy("AssetValueUpdater", {
     from: deployer,
     args: [deployer, deployer, CHAINLINK_CONFIG[source_chain].functions_router, realEstateTokenRegistryDepl.address],
     log: true,
     autoMine: true,
   });
 
-  await deploy("OwnershipVerifierAttestationResolver", {
+  const owResolverDepl = await deploy("OwnershipVerifierAttestationResolver", {
     from: deployer,
-    args: [eas.address],
+    args: [easDepl.address],
     log: true,
     autoMine: true,
   });
 
-  await deploy("GuarantorAttestationResolver", {
+  const guResolverDepl = await deploy("GuarantorAttestationResolver", {
     from: deployer,
-    args: [eas.address],
+    args: [easDepl.address],
     log: true,
     autoMine: true,
   });
@@ -112,7 +112,7 @@ const deployLinkRealContracts: DeployFunction = async function (hre: HardhatRunt
     autoMine: true,
   });
 
-  await deploy("RealEstateTokenPurchaser", {
+  const realEstTokPurchDepl = await deploy("RealEstateTokenPurchaser", {
     from: deployer,
     args: [realEstateTokenRegistryDepl.address, fakeUSDCDepl.address],
     log: true,
