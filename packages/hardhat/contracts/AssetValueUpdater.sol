@@ -27,12 +27,12 @@ contract AssetValueUpdater is Pausable, AccessControl, FunctionsClient {
 
 	mapping(uint256 tokenId => PriceDetails) internal s_priceDetails;
 
-	modifier onlyAutomationForwarder() {
-		if (msg.sender != s_automationForwarderAddress) {
-			revert OnlyAutomationForwarderCanCall();
-		}
-		_;
-	}
+	// modifier onlyAutomationForwarder() {
+	// 	if (msg.sender != s_automationForwarderAddress) {
+	// 		revert OnlyAutomationForwarderCanCall();
+	// 	}
+	// 	_;
+	// }
 
 	constructor(
 		address defaultAdmin,
@@ -47,27 +47,13 @@ contract AssetValueUpdater is Pausable, AccessControl, FunctionsClient {
 		);
 	}
 
-	// TODO: make chainlink keepers call these functions daily
-
-	// function updateAssetValueAppraisal(
-	// 	address realEstateTokenRegistry,
-	// 	address propertyOwner,
-	// 	uint propertyId
-	// ) public {
-	// 	uint newValue = 100; // TODO: fetch from zestimates via chainlink functions
-	// 	RealEstateTokenRegistry(realEstateTokenRegistry).updateAssetAppraisal(
-	// 		propertyOwner,
-	// 		propertyId,
-	// 		newValue
-	// 	);
+	// function setAutomationForwarder(
+	// 	address automationForwarderAddress
+	// ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+	// 	s_automationForwarderAddress = automationForwarderAddress;
 	// }
 
-	function setAutomationForwarder(
-		address automationForwarderAddress
-	) external onlyRole(DEFAULT_ADMIN_ROLE) {
-		s_automationForwarderAddress = automationForwarderAddress;
-	}
-
+	// TODO: make chainlink keepers call these functions daily via custom logic automation, for preset and pre paid users
 	function updatePriceDetailsInitiate(
 		address propertyOwner,
 		uint256 propertyId,
@@ -75,7 +61,7 @@ contract AssetValueUpdater is Pausable, AccessControl, FunctionsClient {
 		uint32 gasLimit,
 		bytes32 donID,
 		string memory source
-	) external onlyAutomationForwarder returns (bytes32 requestId) {
+	) external returns (bytes32 requestId) {
 		FunctionsRequest.Request memory req;
 		req.initializeRequestForInlineJavaScript(source);
 
