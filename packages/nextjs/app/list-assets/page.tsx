@@ -13,7 +13,7 @@ const MenuItems = ({ setSelectedOption }: any) => {
         {menuItems.map(({ title }) => (
           <li key={title}>
             <button
-              className="btn btn-primary p-4 mb-6"
+              className="btn p-4 mb-6"
               onClick={() => setSelectedOption(title)}
               disabled={title !== "Real Estate"}
             >
