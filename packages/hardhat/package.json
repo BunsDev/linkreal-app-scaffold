@@ -49,6 +49,7 @@
   "dependencies": {
     "@chainlink/contracts": "^1.1.1",
     "@chainlink/contracts-ccip": "^1.4.0",
+    "@chainlink/functions-toolkit": "^0.2.8",
     "@ethereum-attestation-service/eas-contracts": "^1.7.1",
     "@ethereum-attestation-service/eas-sdk": "^2.1.4",
     "@openzeppelin/contracts": "^5.0.0",
