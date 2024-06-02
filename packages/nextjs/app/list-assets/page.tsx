@@ -5,7 +5,7 @@ import RealEstateListing from "./real-estate-listing";
 import { NextPage } from "next";
 
 const MenuItems = ({ setSelectedOption }: any) => {
-  const menuItems = [{ title: "Real Estate" }, { title: "Stocks" }, { title: "Fine Art" }, { title: "Carbon Credits" }];
+  const menuItems = [{ title: "Real Estate" }, { title: "Collectibles" }, { title: "Fine Art" }];
 
   return (
     <div className="flex justify-center items-center flex-grow">

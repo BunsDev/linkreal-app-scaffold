@@ -25,14 +25,6 @@ export const menuLinks: HeaderMenuLink[] = [
     // icon: <BugAntIcon className="h-4 w-4" />,
   },
   {
-    label: "Request a Loan",
-    href: "/request-loan",
-  },
-  {
-    label: "Lend Money",
-    href: "/lend-money",
-  },
-  {
     label: "Verify Asset Ownership",
     href: "/verify-ownership",
   },

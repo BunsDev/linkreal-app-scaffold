@@ -25,18 +25,6 @@ const Home: NextPage = () => {
       action: "Invest",
     },
     {
-      title: "Request a Loan",
-      description: "Click the button to request a loan.",
-      href: "/request-loan",
-      action: "Request",
-    },
-    {
-      title: "Lend Money",
-      description: "Click the button to lend your money.",
-      href: "/lend-money",
-      action: "Lend",
-    },
-    {
       title: "Verify Asset Ownership",
       description: "Click the button to verify asset ownership.",
       href: "/verify-ownership",
@@ -48,6 +36,18 @@ const Home: NextPage = () => {
       href: "/asset-gurantees",
       action: "Provide",
     },
+    {
+      title: "Request a Loan",
+      description: "Click the button to request a loan.",
+      href: "/request-loan",
+      action: "Request",
+    },
+    {
+      title: "Lend Money",
+      description: "Click the button to lend your money.",
+      href: "/lend-money",
+      action: "Lend",
+    },
   ];
 
   return (
@@ -58,7 +58,9 @@ const Home: NextPage = () => {
             <h2 className="card-title">{card.title}</h2>
             <p className="">{card.description}</p>
             <Link href={card.href}>
-              <button className="btn btn-primary">{card.action}</button>
+              <button className="btn btn-primary" disabled={["Lend", "Request"].includes(card.action)}>
+                {card.action}
+              </button>
             </Link>
           </div>
         ))}

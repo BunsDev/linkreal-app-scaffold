@@ -20,7 +20,7 @@ export const Footer = () => {
   return (
     <div className="mt-10">
       <div className="fixed bottom-1 right-5 py-5 px-1 mb-11 lg:mb-0">
-        <SwitchTheme />
+        {/* <SwitchTheme /> */}
       </div>
     </div>
   );
