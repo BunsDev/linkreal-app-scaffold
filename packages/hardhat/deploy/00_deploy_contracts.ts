@@ -1,6 +1,21 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
-import { Contract } from "ethers";
+
+const CHAINLINK_CONFIG = {
+  optimismSepolia: {
+    functions_router: "0xC17094E3A1348E5C7544D4fF8A36c28f2C6AAE28",
+    ccip_router: "0x114A20A10b43D4115e5aeef7345a1A71d2a60C57",
+    chain_selector: "5224473277236331295",
+  },
+  arbitrumSepolia: {
+    ccip_router: "0x2a9C5afB0d0e4BAb2BCdaE109EC4b0c4Be15a165",
+    chain_selector: "3478487238524512106",
+  },
+};
+
+const source_chain = "optimismSepolia"; // names set in hardhat.config.ts
+const target_chains = ["arbitrumSepolia"];
+type T_networkName = "optimismSepolia" | "arbitrumSepolia";
 
 /**
  * @param hre HardhatRuntimeEnvironment object.
@@ -18,6 +33,15 @@ const deployLinkRealContracts: DeployFunction = async function (hre: HardhatRunt
   */
   const { deployer } = await hre.getNamedAccounts();
   const { deploy } = hre.deployments;
+  const { name } = hre.network;
+  const networkName: T_networkName = name as T_networkName;
+
+  if ([...target_chains, source_chain].includes(networkName) === false) {
+    console.log("Network not supported: ", networkName);
+    return;
+  }
+
+  console.log("Deploying contracts to network: ", networkName);
 
   const schemaRegistry = await deploy("SchemaRegistry", {
     from: deployer,
@@ -37,7 +61,14 @@ const deployLinkRealContracts: DeployFunction = async function (hre: HardhatRunt
   const realEstateTokenRegistryDepl = await deploy("RealEstateTokenRegistry", {
     from: deployer,
     // Contract constructor arguments
-    args: [deployer, deployer, deployer, eas.address],
+    args: [
+      deployer,
+      deployer,
+      deployer,
+      eas.address,
+      CHAINLINK_CONFIG[networkName].ccip_router,
+      CHAINLINK_CONFIG[networkName].chain_selector,
+    ],
     log: true,
     // autoMine: can be passed to the deploy function to make the deployment process faster on local networks by
     // automatically mining the contract deployment transaction. There is no effect on live networks.
@@ -54,7 +85,7 @@ const deployLinkRealContracts: DeployFunction = async function (hre: HardhatRunt
 
   await deploy("AssetValueUpdater", {
     from: deployer,
-    args: [deployer, deployer],
+    args: [deployer, deployer, CHAINLINK_CONFIG.optimismSepolia.functions_router, realEstateTokenRegistryDepl.address],
     log: true,
     autoMine: true,
   });
@@ -73,9 +104,16 @@ const deployLinkRealContracts: DeployFunction = async function (hre: HardhatRunt
     autoMine: true,
   });
 
+  const fakeUSDCDepl = await deploy("TotallyFakeUSDC", {
+    from: deployer,
+    args: [deployer],
+    log: true,
+    autoMine: true,
+  });
+
   await deploy("RealEstateTokenPurchaser", {
     from: deployer,
-    args: [realEstateTokenRegistryDepl.address],
+    args: [realEstateTokenRegistryDepl.address, fakeUSDCDepl.address],
     log: true,
     autoMine: true,
   });
