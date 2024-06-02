@@ -97,7 +97,7 @@ const ListingForm = ({ property, createQueryString }: any) => {
       <form onSubmit={handleSubmit} className="max-w-md mx-auto">
         <div className="mb-4">
           <label htmlFor="owner" className="block font-bold mb-2">
-            Owner Address
+            Owner Wallet
           </label>
           <input
             type="text"
@@ -111,7 +111,7 @@ const ListingForm = ({ property, createQueryString }: any) => {
         </div>
         <div className="mb-4">
           <label htmlFor="address" className="block font-bold mb-2">
-            Address
+            Property Address
           </label>
           <input
             type="text"
@@ -125,7 +125,7 @@ const ListingForm = ({ property, createQueryString }: any) => {
         </div>
         <div className="mb-4">
           <label htmlFor="price" className="block font-bold mb-2">
-            Total Value of the property ( USD )
+            List Value of the property ( USD )
           </label>
           <input
             type="number"

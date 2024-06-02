@@ -15,7 +15,7 @@ const CHAINLINK_CONFIG = {
 };
 
 const source_chain = "arbitrumSepolia"; // names set in hardhat.config.ts
-const target_chains = ["optimismSepolia"];
+const destination_chains = ["optimismSepolia"];
 type T_networkName = "optimismSepolia" | "arbitrumSepolia";
 
 /**
@@ -37,7 +37,7 @@ const deployLinkRealContracts: DeployFunction = async function (hre: HardhatRunt
   const { name } = hre.network;
   const networkName: T_networkName = name as T_networkName;
 
-  if ([...target_chains, source_chain].includes(networkName) === false) {
+  if ([...destination_chains, source_chain].includes(networkName) === false) {
     console.log("Network not supported: ", networkName);
     return;
   }
