@@ -128,4 +128,39 @@ contract AssetValueUpdater is Pausable, AccessControl, FunctionsClient {
 			taxAssessedValue: uint80(taxAssessedValue)
 		});
 	}
+
+	function fulfillRequestPublicTest() public {
+		uint listPrice = 100000;
+		uint originalListPrice = 90000;
+		uint taxAssessedValue = 80000;
+		address propertyOwner = msg.sender;
+		uint256 propertyId = 1;
+
+		// TODO: make hardcoded weights configurable
+		uint weightListPrice = 50;
+		uint weightOriginalListPrice = 30;
+		uint weightTaxAssessedValue = 20;
+
+		uint256 valuation = (weightListPrice *
+			listPrice +
+			weightOriginalListPrice *
+			originalListPrice +
+			weightTaxAssessedValue *
+			taxAssessedValue) /
+			(weightListPrice +
+				weightOriginalListPrice +
+				weightTaxAssessedValue);
+
+		realEstateTokenRegistry.updateAssetAppraisal(
+			propertyOwner,
+			propertyId,
+			valuation
+		);
+
+		s_priceDetails[propertyOwner][propertyId] = PriceDetails({
+			listPrice: uint80(listPrice),
+			originalListPrice: uint80(originalListPrice),
+			taxAssessedValue: uint80(taxAssessedValue)
+		});
+	}
 }
