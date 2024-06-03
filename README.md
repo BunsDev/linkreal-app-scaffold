@@ -19,6 +19,7 @@
 4. Run the `createEASSchemas.ts`( specify the network as arbitrumSepolia )
 5. Replace the schema uid values inside `/packages/nextjs/settings/config.ts` with the values logged to the console from above createEASSchemas.ts script.
 ![alt text](image-2.png)
+5. Update the consumer addresses in the chainlink functions subscription.
 
 ## Smart Contracts
 
