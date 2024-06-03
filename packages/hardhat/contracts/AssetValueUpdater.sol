@@ -25,7 +25,8 @@ contract AssetValueUpdater is Pausable, AccessControl, FunctionsClient {
 		uint80 taxAssessedValue;
 	}
 
-	mapping(uint256 tokenId => PriceDetails) internal s_priceDetails;
+	mapping(address => mapping(uint256 propertyId => PriceDetails))
+		public s_priceDetails;
 
 	// modifier onlyAutomationForwarder() {
 	// 	if (msg.sender != s_automationForwarderAddress) {
@@ -121,7 +122,7 @@ contract AssetValueUpdater is Pausable, AccessControl, FunctionsClient {
 			valuation
 		);
 
-		s_priceDetails[propertyId] = PriceDetails({
+		s_priceDetails[propertyOwner][propertyId] = PriceDetails({
 			listPrice: uint80(listPrice),
 			originalListPrice: uint80(originalListPrice),
 			taxAssessedValue: uint80(taxAssessedValue)
