@@ -2,7 +2,7 @@ const { ethers } = await import("npm:ethers@6.10.0");
 
 const abiCoder = ethers.AbiCoder.defaultAbiCoder();
 
-const propertyOwner = args[0]
+const propertyOwner = args[0];
 const propertyId = args[1];
 
 const apiResponse = await Functions.makeHttpRequest({
