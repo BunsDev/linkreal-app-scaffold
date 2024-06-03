@@ -51,7 +51,7 @@ async function main() {
 
   const receipt = await tx.wait();
 
-  console.log("receipt: ", receipt);
+  console.log("receipt: ", receipt?.hash);
 
   // const testConsumerContract = new ethers.Contract(
   //   "0x92373801402F0608157dc654fDD18b5a01A45C1e",

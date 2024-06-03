@@ -6700,7 +6700,7 @@ const deployedContracts = {
   },
   421614: {
     AssetValueUpdater: {
-      address: "0xFcb1e8a1AFDDA32cF0CC543e228C464A199e5F91",
+      address: "0x753D3e817DE93A9613b0758c75DbD3F321603704",
       abi: [
         {
           inputs: [
@@ -7083,6 +7083,40 @@ const deployedContracts = {
           name: "revokeRole",
           outputs: [],
           stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+            {
+              internalType: "uint256",
+              name: "propertyId",
+              type: "uint256",
+            },
+          ],
+          name: "s_priceDetails",
+          outputs: [
+            {
+              internalType: "uint80",
+              name: "listPrice",
+              type: "uint80",
+            },
+            {
+              internalType: "uint80",
+              name: "originalListPrice",
+              type: "uint80",
+            },
+            {
+              internalType: "uint80",
+              name: "taxAssessedValue",
+              type: "uint80",
+            },
+          ],
+          stateMutability: "view",
           type: "function",
         },
         {
